@@ -13,8 +13,8 @@ import (
 
 func init() {
 	RootCmd.AddCommand(xhprofCmd)
-	xhprofCmd.Flags().StringVarP(&xhprofDimension, "dimension", "d", "excl_wt", "Dimension to view and sort by (wt, excl_wt, cpu, excl_cpu, mu, excl_mu).")
-	xhprofCmd.Flags().IntVarP(&xhprofNumItems, "size", "s", 30, "Number of items to list in table (Default: 30)")
+	xhprofCmd.Flags().StringVarP(&xhprofDimension, "dimension", "d", "excl_wt", "Dimension to view/sort (wt, excl_wt, cpu, excl_cpu, memory, excl_memory).")
+	xhprofCmd.Flags().IntVarP(&xhprofNumItems, "size", "s", 30, "Number of items to list in table")
 }
 
 type XhprofInfo struct {
@@ -99,7 +99,7 @@ var xhprofDimension string
 var xhprofNumItems int
 
 var xhprofCmd = &cobra.Command{
-	Use:   "analyze-xhprof",
+	Use:   "analyze-xhprof filepath",
 	Short: "Parse the output of JSON serialized XHProf output into a sorted tabular output.",
 	Long:  `Parse the output of JSON serialized XHProf output into a sorted tabular output.`,
 	Args:  cobra.MinimumNArgs(1),

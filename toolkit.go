@@ -1,7 +1,7 @@
 package main
 
 import (
-	"tideways/toolkit/cmd"
+	"github.com/tideways/toolkit/cmd"
 )
 
 const VERSION = "0.1.0"

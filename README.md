@@ -10,6 +10,17 @@ Tideways Toolkit is written in Go and you can install it with the Go compiler
 
     go get github.com/tideways/toolkit
 
+This requires a `$GOPATH` to be setup as environment variable for your user ([docs](https://github.com/golang/go/wiki/GOPATH)).
+If you don't have this, select something like `/home/$USER/code/golang` and create
+this directory, putting the environment varible into `.bashrc`:
+
+    export GOPATH="/home/$USER/code/golang"
+
+You will then find the compiled binary in `/home/$USER/code/golang/bin/toolkit` and can copy
+or symlink it to `/usr/local/bin/tk`.
+
+One of the next tasks will also be to compile binaries and packages for your convenience.
+
 ## Tools
 
 ### analyze-xhprof - Parse and view JSON-serialized XHProf dumps

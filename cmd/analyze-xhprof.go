@@ -3,12 +3,15 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/olekukonko/tablewriter"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/tideways/toolkit/xhprof"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -17,53 +20,31 @@ func init() {
 	xhprofCmd.Flags().IntVarP(&xhprofNumItems, "size", "s", 30, "Number of items to list in table")
 }
 
-type XhprofInfo struct {
-	Calls      int     `json:"ct"`
-	WallTime   float32 `json:"wt"`
-	CpuTime    float32 `json:"cpu"`
-	Memory     float32 `json:"mu"`
-	PeakMemory float32 `json:"pmu"`
-}
-
-type XhprofFlatInfo struct {
-	Name              string
-	Calls             int
-	WallTime          float32
-	CpuTime           float32
-	IoTime            float32
-	Memory            float32
-	PeakMemory        float32
-	ExclusiveWallTime float32
-	ExclusiveCpuTime  float32
-	ExclusiveMemory   float32
-	ExclusiveIoTime   float32
-}
-
-type ByWallTime []XhprofFlatInfo
+type ByWallTime []xhprof.FlatInfo
 
 func (a ByWallTime) Len() int           { return len(a) }
 func (a ByWallTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByWallTime) Less(i, j int) bool { return a[i].WallTime > a[j].WallTime }
 
-type ByCpuTime []XhprofFlatInfo
+type ByCpuTime []xhprof.FlatInfo
 
 func (a ByCpuTime) Len() int           { return len(a) }
 func (a ByCpuTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByCpuTime) Less(i, j int) bool { return a[i].CpuTime > a[j].CpuTime }
 
-type ByIoTime []XhprofFlatInfo
+type ByIoTime []xhprof.FlatInfo
 
 func (a ByIoTime) Len() int           { return len(a) }
 func (a ByIoTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByIoTime) Less(i, j int) bool { return a[i].IoTime > a[j].IoTime }
 
-type ByMemory []XhprofFlatInfo
+type ByMemory []xhprof.FlatInfo
 
 func (a ByMemory) Len() int           { return len(a) }
 func (a ByMemory) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByMemory) Less(i, j int) bool { return a[i].Memory > a[j].Memory }
 
-type ByExclusiveWallTime []XhprofFlatInfo
+type ByExclusiveWallTime []xhprof.FlatInfo
 
 func (a ByExclusiveWallTime) Len() int      { return len(a) }
 func (a ByExclusiveWallTime) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -71,7 +52,7 @@ func (a ByExclusiveWallTime) Less(i, j int) bool {
 	return a[i].ExclusiveWallTime > a[j].ExclusiveWallTime
 }
 
-type ByExclusiveCpuTime []XhprofFlatInfo
+type ByExclusiveCpuTime []xhprof.FlatInfo
 
 func (a ByExclusiveCpuTime) Len() int      { return len(a) }
 func (a ByExclusiveCpuTime) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -79,7 +60,7 @@ func (a ByExclusiveCpuTime) Less(i, j int) bool {
 	return a[i].ExclusiveCpuTime > a[j].ExclusiveCpuTime
 }
 
-type ByExclusiveIoTime []XhprofFlatInfo
+type ByExclusiveIoTime []xhprof.FlatInfo
 
 func (a ByExclusiveIoTime) Len() int      { return len(a) }
 func (a ByExclusiveIoTime) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -87,7 +68,7 @@ func (a ByExclusiveIoTime) Less(i, j int) bool {
 	return a[i].ExclusiveIoTime > a[j].ExclusiveIoTime
 }
 
-type ByExclusiveMemory []XhprofFlatInfo
+type ByExclusiveMemory []xhprof.FlatInfo
 
 func (a ByExclusiveMemory) Len() int      { return len(a) }
 func (a ByExclusiveMemory) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -104,8 +85,8 @@ var xhprofCmd = &cobra.Command{
 	Long:  `Parse the output of JSON serialized XHProf output into a sorted tabular output.`,
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var xhprofData map[string]XhprofInfo
-		var symbols map[string]XhprofFlatInfo
+		var xhprofData map[string]xhprof.Info
+		var symbols map[string]xhprof.FlatInfo
 		var child string
 		var parent string
 		data, err := ioutil.ReadFile(args[0])
@@ -120,10 +101,10 @@ var xhprofCmd = &cobra.Command{
 			return err
 		}
 
-		symbols = make(map[string]XhprofFlatInfo)
+		symbols = make(map[string]xhprof.FlatInfo)
 
 		for call, info := range xhprofData {
-			var flatInfo XhprofFlatInfo
+			var flatInfo xhprof.FlatInfo
 			var ok bool
 			fns := strings.Split(call, "==>")
 
@@ -136,7 +117,7 @@ var xhprofCmd = &cobra.Command{
 			}
 
 			if flatInfo, ok = symbols[child]; !ok {
-				flatInfo = XhprofFlatInfo{Name: child}
+				flatInfo = xhprof.FlatInfo{Name: child}
 			}
 
 			flatInfo.Calls += info.Calls
@@ -161,7 +142,7 @@ var xhprofCmd = &cobra.Command{
 			}
 
 			if flatInfo, ok = symbols[parent]; !ok {
-				flatInfo = XhprofFlatInfo{Name: parent}
+				flatInfo = xhprof.FlatInfo{Name: parent}
 			}
 
 			flatInfo.ExclusiveWallTime -= info.WallTime
@@ -172,7 +153,7 @@ var xhprofCmd = &cobra.Command{
 			symbols[parent] = flatInfo
 		}
 
-		profile := make([]XhprofFlatInfo, len(symbols))
+		profile := make([]xhprof.FlatInfo, len(symbols))
 
 		for _, flatInfo := range symbols {
 			profile = append(profile, flatInfo)

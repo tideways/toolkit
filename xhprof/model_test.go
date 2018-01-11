@@ -15,14 +15,22 @@ func TestFlatten(t *testing.T) {
 		ExclusiveWallTime float32
 		CpuTime           float32
 		ExclusiveCpuTime  float32
+		Memory            float32
+		ExclusiveMemory   float32
+		IoTime            float32
+		ExclusiveIoTime   float32
 	}{
 		{
 			Name:              "main()",
 			Calls:             1,
 			WallTime:          1000,
 			ExclusiveWallTime: 500,
-			CpuTime:           900,
-			ExclusiveCpuTime:  700,
+			CpuTime:           400,
+			ExclusiveCpuTime:  200,
+			Memory:            1500,
+			ExclusiveMemory:   800,
+			IoTime:            600,
+			ExclusiveIoTime:   300,
 		},
 		{
 			Name:              "foo",
@@ -31,6 +39,10 @@ func TestFlatten(t *testing.T) {
 			ExclusiveWallTime: 300,
 			CpuTime:           200,
 			ExclusiveCpuTime:  100,
+			Memory:            700,
+			ExclusiveMemory:   400,
+			IoTime:            300,
+			ExclusiveIoTime:   200,
 		},
 		{
 			Name:              "bar",
@@ -39,6 +51,10 @@ func TestFlatten(t *testing.T) {
 			ExclusiveWallTime: 200,
 			CpuTime:           100,
 			ExclusiveCpuTime:  100,
+			Memory:            300,
+			ExclusiveMemory:   300,
+			IoTime:            100,
+			ExclusiveIoTime:   100,
 		},
 	}
 
@@ -46,17 +62,20 @@ func TestFlatten(t *testing.T) {
 		"main()": Info{
 			WallTime: 1000,
 			Calls:    1,
-			CpuTime:  900,
+			CpuTime:  400,
+			Memory:   1500,
 		},
 		"main()==>foo": Info{
 			WallTime: 500,
 			Calls:    2,
 			CpuTime:  200,
+			Memory:   700,
 		},
 		"foo==>bar": Info{
 			WallTime: 200,
 			Calls:    10,
 			CpuTime:  100,
+			Memory:   300,
 		},
 	}
 
@@ -73,5 +92,9 @@ func TestFlatten(t *testing.T) {
 		assert.Equal(t, expected[i].ExclusiveWallTime, info.ExclusiveWallTime)
 		assert.Equal(t, expected[i].CpuTime, info.CpuTime)
 		assert.Equal(t, expected[i].ExclusiveCpuTime, info.ExclusiveCpuTime)
+		assert.Equal(t, expected[i].Memory, info.Memory)
+		assert.Equal(t, expected[i].ExclusiveMemory, info.ExclusiveMemory)
+		assert.Equal(t, expected[i].IoTime, info.IoTime)
+		assert.Equal(t, expected[i].ExclusiveIoTime, info.ExclusiveIoTime)
 	}
 }

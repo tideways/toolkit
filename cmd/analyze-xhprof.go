@@ -29,55 +29,6 @@ var xhprofCmd = &cobra.Command{
 	RunE:  analyzeXhprof,
 }
 
-type FieldInfo struct {
-	Name   string
-	Label  string
-	Header string
-}
-
-var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
-	"wt": FieldInfo{
-		Name:   "WallTime",
-		Label:  "Inclusive Wall-Time",
-		Header: "Wall-Time",
-	},
-	"excl_wt": FieldInfo{
-		Name:   "ExclusiveWallTime",
-		Label:  "Exclusive Wall-Time",
-		Header: "Wall-Time",
-	},
-	"cpu": FieldInfo{
-		Name:   "CpuTime",
-		Label:  "Inclusive CPU-Time",
-		Header: "CPU-Time",
-	},
-	"excl_cpu": FieldInfo{
-		Name:   "ExclusiveCpuTime",
-		Label:  "Exclusive CPU-Time",
-		Header: "CPU-Time",
-	},
-	"memory": FieldInfo{
-		Name:   "Memory",
-		Label:  "Inclusive Memory",
-		Header: "Memory",
-	},
-	"excl_memory": FieldInfo{
-		Name:   "ExclusiveMemory",
-		Label:  "Exclusive Memory",
-		Header: "Memory",
-	},
-	"io": FieldInfo{
-		Name:   "IoTime",
-		Label:  "Inclusive I/O-Time",
-		Header: "I/O-Time",
-	},
-	"excl_io": FieldInfo{
-		Name:   "ExclusiveIoTime",
-		Label:  "Exclusive I/O-Time",
-		Header: "I/O-Time",
-	},
-}
-
 func analyzeXhprof(cmd *cobra.Command, args []string) error {
 	rawData, err := ioutil.ReadFile(args[0])
 	if err != nil {

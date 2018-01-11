@@ -28,6 +28,11 @@ type FlatInfo struct {
 	ExclusiveIoTime   float32
 }
 
+func (i *FlatInfo) GetFloat32Field(field string) float32 {
+	iVal := reflect.Indirect(reflect.ValueOf(i))
+	return float32(iVal.FieldByName(field).Float())
+}
+
 type SortParams struct {
 	Items []FlatInfo
 	Field string

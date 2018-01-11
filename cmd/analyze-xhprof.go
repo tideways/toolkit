@@ -41,7 +41,10 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	profile := xhprof.Flatten(data)
+	profile, err := xhprof.Flatten(data)
+	if err != nil {
+		return err
+	}
 
 	fieldInfo, ok := fieldsMap[field]
 	if !ok {
@@ -53,7 +56,7 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 	minPercent = minPercent / 100.0
 	err = renderProfile(profile, field, fieldInfo, minPercent)
 	if err != nil {
-		fmt.Printf("Rendering profile failed: %s\n", err.Error())
+		return err
 	}
 
 	return nil

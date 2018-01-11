@@ -80,11 +80,8 @@ var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
 
 func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, minPercent float32) error {
 	profile.SortBy(fieldInfo.Name)
-	main, err := profile.GetMain()
-	if err != nil {
-		return err
-	}
 
+	main := profile.GetMain()
 	minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
 
 	var fields []FieldInfo

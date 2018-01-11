@@ -31,19 +31,8 @@ type Profile struct {
 	Main  *Call
 }
 
-func (p *Profile) GetMain() (*Call, error) {
-	if p.Main != nil {
-		return p.Main, nil
-	}
-
-	for _, call := range p.Calls {
-		if call.Name == "main()" {
-			p.Main = call
-			return call, nil
-		}
-	}
-
-	return nil, errors.New("Profile has no main()")
+func (p *Profile) GetMain() *Call {
+	return p.Main
 }
 
 type ProfileByField struct {
@@ -73,7 +62,7 @@ type PairCall struct {
 	PeakMemory float32 `json:"pmu"`
 }
 
-func Flatten(data map[string]PairCall) *Profile {
+func Flatten(data map[string]PairCall) (*Profile, error) {
 	var parent string
 	var child string
 
@@ -133,5 +122,11 @@ func Flatten(data map[string]PairCall) *Profile {
 	}
 	profile.Calls = calls
 
-	return profile
+	main, ok := symbols["main()"]
+	if !ok || main == nil {
+		return nil, errors.New("Profile has no main()")
+	}
+	profile.Main = main
+
+	return profile, nil
 }

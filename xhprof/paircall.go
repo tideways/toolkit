@@ -2,57 +2,8 @@ package xhprof
 
 import (
 	"errors"
-	"reflect"
-	"sort"
 	"strings"
 )
-
-type Call struct {
-	Name              string
-	Count             int
-	WallTime          float32
-	CpuTime           float32
-	IoTime            float32
-	Memory            float32
-	PeakMemory        float32
-	ExclusiveWallTime float32
-	ExclusiveCpuTime  float32
-	ExclusiveMemory   float32
-	ExclusiveIoTime   float32
-}
-
-func (i *Call) GetFloat32Field(field string) float32 {
-	iVal := reflect.Indirect(reflect.ValueOf(i))
-	return float32(iVal.FieldByName(field).Float())
-}
-
-type Profile struct {
-	Calls []*Call
-	Main  *Call
-}
-
-func (p *Profile) GetMain() *Call {
-	return p.Main
-}
-
-type ProfileByField struct {
-	Profile *Profile
-	Field   string
-}
-
-func (p ProfileByField) Len() int { return len(p.Profile.Calls) }
-func (p ProfileByField) Swap(i, j int) {
-	p.Profile.Calls[i], p.Profile.Calls[j] = p.Profile.Calls[j], p.Profile.Calls[i]
-}
-func (p ProfileByField) Less(i, j int) bool {
-	return p.Profile.Calls[i].GetFloat32Field(p.Field) > p.Profile.Calls[j].GetFloat32Field(p.Field)
-}
-
-func (p *Profile) SortBy(field string) error {
-	params := ProfileByField{Profile: p, Field: field}
-	sort.Sort(params)
-	return nil
-}
 
 type PairCall struct {
 	Count      int     `json:"ct"`

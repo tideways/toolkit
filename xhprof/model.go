@@ -1,22 +1,15 @@
 package xhprof
 
 import (
+	"errors"
 	"reflect"
 	"sort"
 	"strings"
 )
 
-type Info struct {
-	Calls      int     `json:"ct"`
-	WallTime   float32 `json:"wt"`
-	CpuTime    float32 `json:"cpu"`
-	Memory     float32 `json:"mu"`
-	PeakMemory float32 `json:"pmu"`
-}
-
-type FlatInfo struct {
+type Call struct {
 	Name              string
-	Calls             int
+	Count             int
 	WallTime          float32
 	CpuTime           float32
 	IoTime            float32
@@ -28,42 +21,65 @@ type FlatInfo struct {
 	ExclusiveIoTime   float32
 }
 
-func (i *FlatInfo) GetFloat32Field(field string) float32 {
+func (i *Call) GetFloat32Field(field string) float32 {
 	iVal := reflect.Indirect(reflect.ValueOf(i))
 	return float32(iVal.FieldByName(field).Float())
 }
 
-type SortParams struct {
-	Items []FlatInfo
-	Field string
+type Profile struct {
+	Calls []*Call
+	Main  *Call
 }
 
-type ByField SortParams
+func (p *Profile) GetMain() (*Call, error) {
+	if p.Main != nil {
+		return p.Main, nil
+	}
 
-func (a ByField) Len() int      { return len(a.Items) }
-func (a ByField) Swap(i, j int) { a.Items[i], a.Items[j] = a.Items[j], a.Items[i] }
-func (a ByField) Less(i, j int) bool {
-	iVal := reflect.Indirect(reflect.ValueOf(a.Items[i]))
-	jVal := reflect.Indirect(reflect.ValueOf(a.Items[j]))
-	return iVal.FieldByName(a.Field).Float() > jVal.FieldByName(a.Field).Float()
+	for _, call := range p.Calls {
+		if call.Name == "main()" {
+			p.Main = call
+			return call, nil
+		}
+	}
+
+	return nil, errors.New("Profile has no main()")
 }
 
-func SortBy(items []FlatInfo, field string) error {
-	params := SortParams{Items: items, Field: field}
-	sort.Sort(ByField(params))
+type ProfileByField struct {
+	Profile *Profile
+	Field   string
+}
+
+func (p ProfileByField) Len() int { return len(p.Profile.Calls) }
+func (p ProfileByField) Swap(i, j int) {
+	p.Profile.Calls[i], p.Profile.Calls[j] = p.Profile.Calls[j], p.Profile.Calls[i]
+}
+func (p ProfileByField) Less(i, j int) bool {
+	return p.Profile.Calls[i].GetFloat32Field(p.Field) > p.Profile.Calls[j].GetFloat32Field(p.Field)
+}
+
+func (p *Profile) SortBy(field string) error {
+	params := ProfileByField{Profile: p, Field: field}
+	sort.Sort(params)
 	return nil
 }
 
-func Flatten(data map[string]Info) []FlatInfo {
+type PairCall struct {
+	Count      int     `json:"ct"`
+	WallTime   float32 `json:"wt"`
+	CpuTime    float32 `json:"cpu"`
+	Memory     float32 `json:"mu"`
+	PeakMemory float32 `json:"pmu"`
+}
+
+func Flatten(data map[string]PairCall) *Profile {
 	var parent string
 	var child string
 
-	symbols := make(map[string]FlatInfo)
-	for call, info := range data {
-		var flatInfo FlatInfo
-		var ok bool
-
-		fns := strings.Split(call, "==>")
+	symbols := make(map[string]*Call)
+	for name, info := range data {
+		fns := strings.Split(name, "==>")
 		if len(fns) == 2 {
 			parent = fns[0]
 			child = fns[1]
@@ -72,47 +88,50 @@ func Flatten(data map[string]Info) []FlatInfo {
 			child = fns[0]
 		}
 
-		if flatInfo, ok = symbols[child]; !ok {
-			flatInfo = FlatInfo{Name: child}
+		call, ok := symbols[child]
+		if !ok {
+			call = &Call{Name: child}
 		}
 
-		flatInfo.Calls += info.Calls
+		call.Count += info.Count
 
-		flatInfo.WallTime += info.WallTime
-		flatInfo.ExclusiveWallTime += info.WallTime
+		call.WallTime += info.WallTime
+		call.ExclusiveWallTime += info.WallTime
 
-		flatInfo.CpuTime += info.CpuTime
-		flatInfo.ExclusiveCpuTime += info.CpuTime
+		call.CpuTime += info.CpuTime
+		call.ExclusiveCpuTime += info.CpuTime
 
-		flatInfo.IoTime += (info.WallTime - info.CpuTime)
-		flatInfo.ExclusiveIoTime += (info.WallTime - info.CpuTime)
+		call.IoTime += (info.WallTime - info.CpuTime)
+		call.ExclusiveIoTime += (info.WallTime - info.CpuTime)
 
-		flatInfo.Memory += info.Memory
-		flatInfo.PeakMemory += info.PeakMemory
-		flatInfo.ExclusiveMemory += info.Memory
+		call.Memory += info.Memory
+		call.PeakMemory += info.PeakMemory
+		call.ExclusiveMemory += info.Memory
 
-		symbols[child] = flatInfo
+		symbols[child] = call
 
 		if len(parent) == 0 {
 			continue
 		}
 
-		if flatInfo, ok = symbols[parent]; !ok {
-			flatInfo = FlatInfo{Name: parent}
+		if call, ok = symbols[parent]; !ok {
+			call = &Call{Name: parent}
 		}
 
-		flatInfo.ExclusiveWallTime -= info.WallTime
-		flatInfo.ExclusiveCpuTime -= info.CpuTime
-		flatInfo.ExclusiveMemory -= info.Memory
-		flatInfo.ExclusiveIoTime -= (info.WallTime - info.CpuTime)
+		call.ExclusiveWallTime -= info.WallTime
+		call.ExclusiveCpuTime -= info.CpuTime
+		call.ExclusiveMemory -= info.Memory
+		call.ExclusiveIoTime -= (info.WallTime - info.CpuTime)
 
-		symbols[parent] = flatInfo
+		symbols[parent] = call
 	}
 
-	profile := make([]FlatInfo, 0, len(symbols))
-	for _, flatInfo := range symbols {
-		profile = append(profile, flatInfo)
+	profile := new(Profile)
+	calls := make([]*Call, 0, len(symbols))
+	for _, call := range symbols {
+		calls = append(calls, call)
 	}
+	profile.Calls = calls
 
 	return profile
 }

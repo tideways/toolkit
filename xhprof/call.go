@@ -38,6 +38,30 @@ func (c *Call) Add(o *Call) *Call {
 	return c
 }
 
+func (c *Call) AddPairCall(p *PairCall) *Call {
+	c.Count += p.Count
+	c.WallTime += p.WallTime
+	c.ExclusiveWallTime += p.WallTime
+	c.CpuTime += p.CpuTime
+	c.ExclusiveCpuTime += p.CpuTime
+	c.IoTime += (p.WallTime - p.CpuTime)
+	c.ExclusiveIoTime += (p.WallTime - p.CpuTime)
+	c.Memory += p.Memory
+	c.PeakMemory += p.PeakMemory
+	c.ExclusiveMemory += p.Memory
+
+	return c
+}
+
+func (c *Call) SubtractExcl(p *PairCall) *Call {
+	c.ExclusiveWallTime -= p.WallTime
+	c.ExclusiveCpuTime -= p.CpuTime
+	c.ExclusiveMemory -= p.Memory
+	c.ExclusiveIoTime -= (p.WallTime - p.CpuTime)
+
+	return c
+}
+
 func (c *Call) Divide(d float32) *Call {
 	c.Count /= int(d)
 	c.WallTime /= d

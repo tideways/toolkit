@@ -58,20 +58,20 @@ func TestFlatten(t *testing.T) {
 		},
 	}
 
-	sample := map[string]PairCall{
-		"main()": PairCall{
+	sample := map[string]*PairCall{
+		"main()": &PairCall{
 			WallTime: 1000,
 			Count:    1,
 			CpuTime:  400,
 			Memory:   1500,
 		},
-		"main()==>foo": PairCall{
+		"main()==>foo": &PairCall{
 			WallTime: 500,
 			Count:    2,
 			CpuTime:  200,
 			Memory:   700,
 		},
-		"foo==>bar": PairCall{
+		"foo==>bar": &PairCall{
 			WallTime: 200,
 			Count:    10,
 			CpuTime:  100,

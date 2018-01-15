@@ -35,7 +35,7 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var data map[string]xhprof.PairCall
+	var data map[string]*xhprof.PairCall
 	err = json.Unmarshal(rawData, &data)
 	if err != nil {
 		return err

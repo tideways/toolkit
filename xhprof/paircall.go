@@ -13,7 +13,7 @@ type PairCall struct {
 	PeakMemory float32 `json:"pmu"`
 }
 
-func Flatten(data map[string]PairCall) (*Profile, error) {
+func Flatten(data map[string]*PairCall) (*Profile, error) {
 	var parent string
 	var child string
 
@@ -33,21 +33,7 @@ func Flatten(data map[string]PairCall) (*Profile, error) {
 			call = &Call{Name: child}
 		}
 
-		call.Count += info.Count
-
-		call.WallTime += info.WallTime
-		call.ExclusiveWallTime += info.WallTime
-
-		call.CpuTime += info.CpuTime
-		call.ExclusiveCpuTime += info.CpuTime
-
-		call.IoTime += (info.WallTime - info.CpuTime)
-		call.ExclusiveIoTime += (info.WallTime - info.CpuTime)
-
-		call.Memory += info.Memory
-		call.PeakMemory += info.PeakMemory
-		call.ExclusiveMemory += info.Memory
-
+		call.AddPairCall(info)
 		symbols[child] = call
 
 		if len(parent) == 0 {
@@ -58,11 +44,7 @@ func Flatten(data map[string]PairCall) (*Profile, error) {
 			call = &Call{Name: parent}
 		}
 
-		call.ExclusiveWallTime -= info.WallTime
-		call.ExclusiveCpuTime -= info.CpuTime
-		call.ExclusiveMemory -= info.Memory
-		call.ExclusiveIoTime -= (info.WallTime - info.CpuTime)
-
+		call.SubtractExcl(info)
 		symbols[parent] = call
 	}
 

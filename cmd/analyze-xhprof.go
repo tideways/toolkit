@@ -22,29 +22,36 @@ var (
 )
 
 var xhprofCmd = &cobra.Command{
-	Use:   "analyze-xhprof filepath",
-	Short: "Parse the output of JSON serialized XHProf output into a sorted tabular output.",
-	Long:  `Parse the output of JSON serialized XHProf output into a sorted tabular output.`,
+	Use:   "analyze-xhprof [options]... filepaths...",
+	Short: "Parse the output of JSON serialized XHProf outputs into a sorted tabular output.",
+	Long:  `Parse the output of JSON serialized XHProf outputs into a sorted tabular output.`,
 	Args:  cobra.MinimumNArgs(1),
 	RunE:  analyzeXhprof,
 }
 
 func analyzeXhprof(cmd *cobra.Command, args []string) error {
-	rawData, err := ioutil.ReadFile(args[0])
-	if err != nil {
-		return err
+	profiles := make([]*xhprof.Profile, 0, len(args))
+	for _, arg := range args {
+		rawData, err := ioutil.ReadFile(arg)
+		if err != nil {
+			return err
+		}
+
+		var data map[string]*xhprof.PairCall
+		err = json.Unmarshal(rawData, &data)
+		if err != nil {
+			return err
+		}
+
+		profile, err := xhprof.Flatten(data)
+		if err != nil {
+			return err
+		}
+
+		profiles = append(profiles, profile)
 	}
 
-	var data map[string]*xhprof.PairCall
-	err = json.Unmarshal(rawData, &data)
-	if err != nil {
-		return err
-	}
-
-	profile, err := xhprof.Flatten(data)
-	if err != nil {
-		return err
-	}
+	avgProfile := xhprof.AvgProfiles(profiles)
 
 	fieldInfo, ok := fieldsMap[field]
 	if !ok {
@@ -54,7 +61,7 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 	}
 
 	minPercent = minPercent / 100.0
-	err = renderProfile(profile, field, fieldInfo, minPercent)
+	err := renderProfile(avgProfile, field, fieldInfo, minPercent)
 	if err != nil {
 		return err
 	}

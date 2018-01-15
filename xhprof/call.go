@@ -76,3 +76,11 @@ func (c *Call) Divide(d float32) *Call {
 
 	return c
 }
+
+type CallDiff struct {
+	Name           string
+	WallTime       float32
+	CpuTime        float32
+	FractionWtFrom float32
+	FractionWtTo   float32
+}

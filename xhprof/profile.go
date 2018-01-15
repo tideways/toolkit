@@ -33,32 +33,27 @@ func (p *Profile) SortBy(field string) error {
 }
 
 func AvgProfiles(profiles []*Profile) *Profile {
-	type CallSum struct {
-		Call *Call
-		Num  int
-	}
-	callMap := make(map[string]*CallSum)
-
+	callMap := make(map[string]*Call)
 	for _, p := range profiles {
 		for _, c := range p.Calls {
 			call, ok := callMap[c.Name]
 			if !ok {
-				call = &CallSum{Call: new(Call), Num: 1}
-				*call.Call = *c
-				callMap[call.Call.Name] = call
+				call = new(Call)
+				*call = *c
+				callMap[call.Name] = call
 				continue
 			}
 
-			call.Call.Add(c)
-			call.Num += 1
+			call.Add(c)
 		}
 	}
 
+	num := float32(len(profiles))
 	res := new(Profile)
 	calls := make([]*Call, 0, len(callMap))
 	for _, call := range callMap {
-		avgCall := call.Call.Divide(float32(call.Num))
-		if call.Call.Name == "main()" {
+		avgCall := call.Divide(num)
+		if call.Name == "main()" {
 			res.Main = avgCall
 		}
 

@@ -10,9 +10,14 @@ import (
 var RootCmd = &cobra.Command{
 	Use:   "tk",
 	Short: "Tideways Toolkit is a collection of tools to interact with PHP",
-	Long:  `The Tideways Toolkit (tk) is a collection of commandline tools to interact with
-	PHP and perform various debugging, profiling and introspection jobs by
-	interacting with PHP or with debugging extensions for PHP.`,
+	Long: `The Tideways Toolkit (tk) is a collection of commandline tools to interact with
+PHP and perform various debugging, profiling and introspection jobs by
+interacting with PHP or with debugging extensions for PHP.
+
+Are you looking for a production profiler for your team with Web UI, SQL and
+HTTP profiling, monitoring, exception tracking and more?
+
+Start a Tideways Profiler 30 days trial @ https://tideways.io`,
 }
 
 var version string

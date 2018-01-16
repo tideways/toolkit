@@ -10,7 +10,7 @@ import (
 func TestFlatten(t *testing.T) {
 	expected := []struct {
 		Name              string
-		Calls             int
+		Count             int
 		WallTime          float32
 		ExclusiveWallTime float32
 		CpuTime           float32
@@ -22,7 +22,7 @@ func TestFlatten(t *testing.T) {
 	}{
 		{
 			Name:              "main()",
-			Calls:             1,
+			Count:             1,
 			WallTime:          1000,
 			ExclusiveWallTime: 500,
 			CpuTime:           400,
@@ -34,7 +34,7 @@ func TestFlatten(t *testing.T) {
 		},
 		{
 			Name:              "foo",
-			Calls:             2,
+			Count:             2,
 			WallTime:          500,
 			ExclusiveWallTime: 300,
 			CpuTime:           200,
@@ -46,7 +46,7 @@ func TestFlatten(t *testing.T) {
 		},
 		{
 			Name:              "bar",
-			Calls:             10,
+			Count:             10,
 			WallTime:          200,
 			ExclusiveWallTime: 200,
 			CpuTime:           100,
@@ -58,43 +58,46 @@ func TestFlatten(t *testing.T) {
 		},
 	}
 
-	sample := map[string]Info{
-		"main()": Info{
+	sample := map[string]*PairCall{
+		"main()": &PairCall{
 			WallTime: 1000,
-			Calls:    1,
+			Count:    1,
 			CpuTime:  400,
 			Memory:   1500,
 		},
-		"main()==>foo": Info{
+		"main()==>foo": &PairCall{
 			WallTime: 500,
-			Calls:    2,
+			Count:    2,
 			CpuTime:  200,
 			Memory:   700,
 		},
-		"foo==>bar": Info{
+		"foo==>bar": &PairCall{
 			WallTime: 200,
-			Calls:    10,
+			Count:    10,
 			CpuTime:  100,
 			Memory:   300,
 		},
 	}
 
-	profile := Flatten(sample)
+	profile, err := Flatten(sample)
+	profile.SortBy("WallTime")
 
-	var expectedType []FlatInfo
+	var expectedType *Profile
+	require.Nil(t, err)
 	require.IsType(t, profile, expectedType)
-	require.Len(t, profile, len(expected))
+	require.Len(t, profile.Calls, len(expected))
+	assert.Equal(t, float32(1000), profile.Main.WallTime)
 
-	for i, info := range profile {
-		assert.Equal(t, expected[i].Name, info.Name)
-		assert.Equal(t, expected[i].Calls, info.Calls)
-		assert.Equal(t, expected[i].WallTime, info.WallTime)
-		assert.Equal(t, expected[i].ExclusiveWallTime, info.ExclusiveWallTime)
-		assert.Equal(t, expected[i].CpuTime, info.CpuTime)
-		assert.Equal(t, expected[i].ExclusiveCpuTime, info.ExclusiveCpuTime)
-		assert.Equal(t, expected[i].Memory, info.Memory)
-		assert.Equal(t, expected[i].ExclusiveMemory, info.ExclusiveMemory)
-		assert.Equal(t, expected[i].IoTime, info.IoTime)
-		assert.Equal(t, expected[i].ExclusiveIoTime, info.ExclusiveIoTime)
+	for i, call := range profile.Calls {
+		assert.Equal(t, expected[i].Name, call.Name)
+		assert.Equal(t, expected[i].Count, call.Count)
+		assert.Equal(t, expected[i].WallTime, call.WallTime)
+		assert.Equal(t, expected[i].ExclusiveWallTime, call.ExclusiveWallTime)
+		assert.Equal(t, expected[i].CpuTime, call.CpuTime)
+		assert.Equal(t, expected[i].ExclusiveCpuTime, call.ExclusiveCpuTime)
+		assert.Equal(t, expected[i].Memory, call.Memory)
+		assert.Equal(t, expected[i].ExclusiveMemory, call.ExclusiveMemory)
+		assert.Equal(t, expected[i].IoTime, call.IoTime)
+		assert.Equal(t, expected[i].ExclusiveIoTime, call.ExclusiveIoTime)
 	}
 }

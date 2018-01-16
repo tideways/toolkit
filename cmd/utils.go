@@ -120,3 +120,30 @@ func getRow(call *xhprof.Call, fields []FieldInfo) []string {
 
 	return res
 }
+
+func renderProfileDiff(diff *xhprof.ProfileDiff, limit int) error {
+	diff.Sort()
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Function", "Wall-Time", "CPU-Time", "Fraction Wall-Time From", "Fraction Wall-Time To"})
+	for i, call := range diff.Calls {
+		if i >= limit {
+			break
+		}
+
+		row := []string{
+			fmt.Sprintf("%.90s", call.Name),
+			fmt.Sprintf("%2.2f ms", call.WallTime/1000),
+			fmt.Sprintf("%2.2f ms", call.CpuTime/1000),
+			fmt.Sprintf("%2.2f", call.FractionWtFrom),
+			fmt.Sprintf("%2.2f", call.FractionWtTo),
+		}
+
+		table.Append(row)
+	}
+
+	fmt.Printf("Showing XHProf data by the difference of fractions\n")
+	table.Render()
+
+	return nil
+}

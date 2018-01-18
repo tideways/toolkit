@@ -82,15 +82,14 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 		if functionCall == nil {
 			return errors.New("Profile doesn't contain function")
 		}
-
 		minValue := minPercent * functionCall.GetFloat32Field(fieldInfo.Name)
+
 		fmt.Printf("Parents of %s:\n", function)
 		err := renderProfile(parentsProfile, field, fieldInfo, minValue)
 		if err != nil {
 			return err
 		}
 
-		minValue = minPercent * functionCall.GetFloat32Field(fieldInfo.Name)
 		fmt.Printf("Children of %s:\n", function)
 		err = renderProfile(childrenProfile, field, fieldInfo, minValue)
 		if err != nil {

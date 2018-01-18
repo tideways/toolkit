@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/tideways/toolkit/xhprof"
 
@@ -22,7 +20,7 @@ var (
 )
 
 var xhprofCmd = &cobra.Command{
-	Use:   "analyze-xhprof [options]... filepaths...",
+	Use:   "analyze-xhprof filepaths...",
 	Short: "Parse the output of JSON serialized XHProf outputs into a sorted tabular output.",
 	Long:  `Parse the output of JSON serialized XHProf outputs into a sorted tabular output.`,
 	Args:  cobra.MinimumNArgs(1),
@@ -32,18 +30,7 @@ var xhprofCmd = &cobra.Command{
 func analyzeXhprof(cmd *cobra.Command, args []string) error {
 	profiles := make([]*xhprof.Profile, 0, len(args))
 	for _, arg := range args {
-		rawData, err := ioutil.ReadFile(arg)
-		if err != nil {
-			return err
-		}
-
-		var data map[string]*xhprof.PairCall
-		err = json.Unmarshal(rawData, &data)
-		if err != nil {
-			return err
-		}
-
-		profile, err := xhprof.Flatten(data)
+		profile, err := xhprof.ParseFile(arg, false)
 		if err != nil {
 			return err
 		}

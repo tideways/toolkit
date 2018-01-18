@@ -9,6 +9,13 @@ type Profile struct {
 	Main  *Call
 }
 
+func NewProfile() *Profile {
+	p := new(Profile)
+	p.Calls = make([]*Call, 0, 5)
+
+	return p
+}
+
 func (p *Profile) GetMain() *Call {
 	return p.Main
 }

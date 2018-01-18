@@ -81,3 +81,52 @@ func TestAvgProfiles(t *testing.T) {
 	require.Len(t, p.Calls, 1)
 	assert.EqualValues(t, expected.Calls, p.Calls)
 }
+
+func TestSelectGreater(t *testing.T) {
+	expected := &Profile{
+		Calls: []*Call{
+			&Call{
+				Name:     "main()",
+				WallTime: 300,
+			},
+			&Call{
+				Name:     "f3",
+				WallTime: 150,
+			},
+			&Call{
+				Name:     "f2",
+				WallTime: 70,
+			},
+		},
+	}
+
+	p := &Profile{
+		Calls: []*Call{
+			&Call{
+				Name:     "main()",
+				WallTime: 300,
+			},
+			&Call{
+				Name:     "f1",
+				WallTime: 20,
+			},
+			&Call{
+				Name:     "f2",
+				WallTime: 70,
+			},
+			&Call{
+				Name:     "f3",
+				WallTime: 150,
+			},
+			&Call{
+				Name:     "f4",
+				WallTime: 29,
+			},
+		},
+	}
+
+	p.SortBy("WallTime")
+	p = p.SelectGreater("WallTime", 30)
+
+	assert.EqualValues(t, expected, p)
+}

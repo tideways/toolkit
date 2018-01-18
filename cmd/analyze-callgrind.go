@@ -43,9 +43,10 @@ func analyzeCallgrind(cmd *cobra.Command, args []string) error {
 		fieldInfo = fieldsMap[field]
 	}
 
+	profile.SortBy(fieldInfo.Name)
 	minPercent = minPercent / 100.0
-	main := profile.GetMain()
-	minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
+	minValue := minPercent * profile.Calls[0].GetFloat32Field(fieldInfo.Name)
+	profile = profile.SelectGreater(fieldInfo.Name, minValue)
 	err := renderProfile(profile, field, fieldInfo, minValue)
 	if err != nil {
 		return err

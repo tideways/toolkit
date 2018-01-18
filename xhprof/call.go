@@ -80,7 +80,7 @@ func (c *Call) Divide(d float32) *Call {
 type CallDiff struct {
 	Name           string
 	WallTime       float32
-	CpuTime        float32
+	Count          int
 	FractionWtFrom float32
 	FractionWtTo   float32
 }

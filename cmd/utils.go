@@ -125,7 +125,7 @@ func renderProfileDiff(diff *xhprof.ProfileDiff, limit int) error {
 	diff.Sort()
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Function", "Wall-Time", "CPU-Time", "Fraction Wall-Time From", "Fraction Wall-Time To"})
+	table.SetHeader([]string{"Function", "Count", "Wall-Time", "Fraction Wall-Time From", "Fraction Wall-Time To"})
 	for i, call := range diff.Calls {
 		if i >= limit {
 			break
@@ -133,8 +133,8 @@ func renderProfileDiff(diff *xhprof.ProfileDiff, limit int) error {
 
 		row := []string{
 			fmt.Sprintf("%.90s", call.Name),
+			fmt.Sprintf("%d", call.Count),
 			fmt.Sprintf("%2.2f ms", call.WallTime/1000),
-			fmt.Sprintf("%2.2f ms", call.CpuTime/1000),
 			fmt.Sprintf("%2.2f", call.FractionWtFrom),
 			fmt.Sprintf("%2.2f", call.FractionWtTo),
 		}

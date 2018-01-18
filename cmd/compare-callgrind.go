@@ -22,7 +22,8 @@ var compareCallgrindCmd = &cobra.Command{
 func compareCallgrind(cmd *cobra.Command, args []string) error {
 	profiles := make([]*xhprof.Profile, 0, len(args))
 	for _, arg := range args {
-		profile, err := xhprof.ParseFile(arg, true)
+		f := xhprof.NewFile(arg, "callgrind")
+		profile, err := f.GetProfile()
 		if err != nil {
 			return err
 		}

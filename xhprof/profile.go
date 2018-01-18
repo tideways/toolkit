@@ -130,6 +130,10 @@ func (d *ProfileDiff) Sort() {
 }
 
 func AvgProfiles(profiles []*Profile) *Profile {
+	if len(profiles) == 1 {
+		return profiles[0]
+	}
+
 	callMap := make(map[string]*Call)
 	for _, p := range profiles {
 		for _, c := range p.Calls {

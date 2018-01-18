@@ -7,7 +7,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	expected := Call{
+	expected := &Call{
 		Count:             7,
 		WallTime:          1000,
 		ExclusiveWallTime: 600,
@@ -57,19 +57,11 @@ func TestAdd(t *testing.T) {
 
 	c1.Add(c2).Add(c3)
 
-	assert.Equal(t, expected.Count, c1.Count)
-	assert.Equal(t, expected.WallTime, c1.WallTime)
-	assert.Equal(t, expected.ExclusiveWallTime, c1.ExclusiveWallTime)
-	assert.Equal(t, expected.CpuTime, c1.CpuTime)
-	assert.Equal(t, expected.ExclusiveCpuTime, c1.ExclusiveCpuTime)
-	assert.Equal(t, expected.IoTime, c1.IoTime)
-	assert.Equal(t, expected.ExclusiveIoTime, c1.ExclusiveIoTime)
-	assert.Equal(t, expected.Memory, c1.Memory)
-	assert.Equal(t, expected.ExclusiveMemory, c1.ExclusiveMemory)
+	assert.EqualValues(t, expected, c1)
 }
 
 func TestAddPairCall(t *testing.T) {
-	expected := Call{
+	expected := &Call{
 		Count:             5,
 		WallTime:          700,
 		ExclusiveWallTime: 600,
@@ -104,20 +96,11 @@ func TestAddPairCall(t *testing.T) {
 
 	c.AddPairCall(p)
 
-	assert.Equal(t, expected.Count, c.Count)
-	assert.Equal(t, expected.WallTime, c.WallTime)
-	assert.Equal(t, expected.ExclusiveWallTime, c.ExclusiveWallTime)
-	assert.Equal(t, expected.CpuTime, c.CpuTime)
-	assert.Equal(t, expected.ExclusiveCpuTime, c.ExclusiveCpuTime)
-	assert.Equal(t, expected.IoTime, c.IoTime)
-	assert.Equal(t, expected.ExclusiveIoTime, c.ExclusiveIoTime)
-	assert.Equal(t, expected.Memory, c.Memory)
-	assert.Equal(t, expected.PeakMemory, c.PeakMemory)
-	assert.Equal(t, expected.ExclusiveMemory, c.ExclusiveMemory)
+	assert.EqualValues(t, expected, c)
 }
 
 func TestSubtractExcl(t *testing.T) {
-	expected := Call{
+	expected := &Call{
 		Count:             4,
 		WallTime:          500,
 		ExclusiveWallTime: 200,
@@ -150,20 +133,11 @@ func TestSubtractExcl(t *testing.T) {
 
 	c.SubtractExcl(p)
 
-	assert.Equal(t, expected.Count, c.Count)
-	assert.Equal(t, expected.WallTime, c.WallTime)
-	assert.Equal(t, expected.ExclusiveWallTime, c.ExclusiveWallTime)
-	assert.Equal(t, expected.CpuTime, c.CpuTime)
-	assert.Equal(t, expected.ExclusiveCpuTime, c.ExclusiveCpuTime)
-	assert.Equal(t, expected.IoTime, c.IoTime)
-	assert.Equal(t, expected.ExclusiveIoTime, c.ExclusiveIoTime)
-	assert.Equal(t, expected.Memory, c.Memory)
-	assert.Equal(t, expected.PeakMemory, c.PeakMemory)
-	assert.Equal(t, expected.ExclusiveMemory, c.ExclusiveMemory)
+	assert.EqualValues(t, expected, c)
 }
 
 func TestDivide(t *testing.T) {
-	expected := Call{
+	expected := &Call{
 		Count:             3,
 		WallTime:          900,
 		ExclusiveWallTime: 690,
@@ -189,13 +163,5 @@ func TestDivide(t *testing.T) {
 
 	c1.Divide(3)
 
-	assert.Equal(t, expected.Count, c1.Count)
-	assert.Equal(t, expected.WallTime, c1.WallTime)
-	assert.Equal(t, expected.ExclusiveWallTime, c1.ExclusiveWallTime)
-	assert.Equal(t, expected.CpuTime, c1.CpuTime)
-	assert.Equal(t, expected.ExclusiveCpuTime, c1.ExclusiveCpuTime)
-	assert.Equal(t, expected.IoTime, c1.IoTime)
-	assert.Equal(t, expected.ExclusiveIoTime, c1.ExclusiveIoTime)
-	assert.Equal(t, expected.Memory, c1.Memory)
-	assert.Equal(t, expected.ExclusiveMemory, c1.ExclusiveMemory)
+	assert.Equal(t, expected, c1)
 }

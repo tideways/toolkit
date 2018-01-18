@@ -13,12 +13,43 @@ type PairCall struct {
 	PeakMemory float32 `json:"pmu"`
 }
 
-func Flatten(data map[string]*PairCall) (*Profile, error) {
+func (p *PairCall) Add(o *PairCall) *PairCall {
+	p.Count += o.Count
+	p.WallTime += o.WallTime
+	p.CpuTime += o.CpuTime
+	p.Memory += o.Memory
+	p.PeakMemory += o.PeakMemory
+
+	return p
+}
+
+func (p *PairCall) Divide(d float32) *PairCall {
+	p.Count /= int(d)
+	p.WallTime /= d
+	p.CpuTime /= d
+	p.Memory /= d
+	p.PeakMemory /= d
+
+	return p
+}
+
+type PairCallMap struct {
+	M map[string]*PairCall
+}
+
+func NewPairCallMap() *PairCallMap {
+	m := new(PairCallMap)
+	m.M = make(map[string]*PairCall)
+
+	return m
+}
+
+func (m *PairCallMap) Flatten() (*Profile, error) {
 	var parent string
 	var child string
 
 	symbols := make(map[string]*Call)
-	for name, info := range data {
+	for name, info := range m.M {
 		fns := strings.Split(name, "==>")
 		if len(fns) == 2 {
 			parent = fns[0]
@@ -62,4 +93,33 @@ func Flatten(data map[string]*PairCall) (*Profile, error) {
 	profile.Main = main
 
 	return profile, nil
+}
+
+func AvgPairCallMaps(maps []*PairCallMap) *PairCallMap {
+	if len(maps) == 1 {
+		return maps[0]
+	}
+
+	res := NewPairCallMap()
+
+	for _, m := range maps {
+		for k, v := range m.M {
+			pairCall, ok := res.M[k]
+			if !ok {
+				pairCall = new(PairCall)
+				*pairCall = *v
+				res.M[k] = pairCall
+				continue
+			}
+
+			pairCall.Add(v)
+		}
+	}
+
+	num := float32(len(maps))
+	for _, v := range res.M {
+		v.Divide(num)
+	}
+
+	return res
 }

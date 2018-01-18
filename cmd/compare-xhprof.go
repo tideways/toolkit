@@ -26,7 +26,8 @@ var compareXhprofCmd = &cobra.Command{
 func compareXhprof(cmd *cobra.Command, args []string) error {
 	profiles := make([]*xhprof.Profile, 0, len(args))
 	for _, arg := range args {
-		profile, err := xhprof.ParseFile(arg, false)
+		f := xhprof.NewFile(arg, "xhprof")
+		profile, err := f.GetProfile()
 		if err != nil {
 			return err
 		}

@@ -58,7 +58,7 @@ func (p *Profile) Subtract(o *Profile) *ProfileDiff {
 			callDiff := &CallDiff{
 				Name:           c.Name,
 				WallTime:       c.WallTime,
-				CpuTime:        c.CpuTime,
+				Count:          c.Count,
 				FractionWtFrom: c.WallTime / p.Main.WallTime,
 				FractionWtTo:   0,
 			}
@@ -67,19 +67,19 @@ func (p *Profile) Subtract(o *Profile) *ProfileDiff {
 		}
 
 		var wtChange float32
-		var cpuChange float32
+		var ctChange int
 		if c.WallTime != oCall.WallTime {
 			wtChange = oCall.WallTime - c.WallTime
 		}
-		if c.CpuTime != oCall.CpuTime {
-			cpuChange = oCall.CpuTime - c.CpuTime
+		if c.Count != oCall.Count {
+			ctChange = oCall.Count - c.Count
 		}
 
-		if wtChange != 0 || cpuChange != 0 {
+		if wtChange != 0 || ctChange != 0 {
 			callDiff := &CallDiff{
 				Name:           c.Name,
 				WallTime:       wtChange,
-				CpuTime:        cpuChange,
+				Count:          ctChange,
 				FractionWtFrom: c.WallTime / p.Main.WallTime,
 				FractionWtTo:   oCall.WallTime / o.Main.WallTime,
 			}
@@ -93,7 +93,7 @@ func (p *Profile) Subtract(o *Profile) *ProfileDiff {
 		diff[c.Name] = &CallDiff{
 			Name:           c.Name,
 			WallTime:       c.WallTime,
-			CpuTime:        c.WallTime,
+			Count:          c.Count,
 			FractionWtFrom: 0,
 			FractionWtTo:   c.WallTime / o.Main.WallTime,
 		}
@@ -130,6 +130,10 @@ func (d *ProfileDiff) Sort() {
 }
 
 func AvgProfiles(profiles []*Profile) *Profile {
+	if len(profiles) == 1 {
+		return profiles[0]
+	}
+
 	callMap := make(map[string]*Call)
 	for _, p := range profiles {
 		for _, c := range p.Calls {

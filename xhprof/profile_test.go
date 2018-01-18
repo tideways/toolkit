@@ -79,13 +79,5 @@ func TestAvgProfiles(t *testing.T) {
 	p := AvgProfiles([]*Profile{p1, p2, p3})
 
 	require.Len(t, p.Calls, 1)
-	assert.Equal(t, expected.Calls[0].Count, p.Calls[0].Count)
-	assert.Equal(t, expected.Calls[0].WallTime, p.Calls[0].WallTime)
-	assert.Equal(t, expected.Calls[0].ExclusiveWallTime, p.Calls[0].ExclusiveWallTime)
-	assert.Equal(t, expected.Calls[0].CpuTime, p.Calls[0].CpuTime)
-	assert.Equal(t, expected.Calls[0].ExclusiveCpuTime, p.Calls[0].ExclusiveCpuTime)
-	assert.Equal(t, expected.Calls[0].IoTime, p.Calls[0].IoTime)
-	assert.Equal(t, expected.Calls[0].ExclusiveIoTime, p.Calls[0].ExclusiveIoTime)
-	assert.Equal(t, expected.Calls[0].Memory, p.Calls[0].Memory)
-	assert.Equal(t, expected.Calls[0].ExclusiveMemory, p.Calls[0].ExclusiveMemory)
+	assert.EqualValues(t, expected.Calls, p.Calls)
 }

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/tideways/toolkit/xhprof"
@@ -13,12 +14,14 @@ func init() {
 	xhprofCmd.Flags().StringVarP(&field, "field", "f", "excl_wt", "Field to view/sort (wt, excl_wt, cpu, excl_cpu, memory, excl_memory, io, excl_io)")
 	xhprofCmd.Flags().Float32VarP(&minPercent, "min", "m", 1, "Display items having minimum percentage (default 1%) of --field, with respect to main()")
 	xhprofCmd.Flags().StringVarP(&outFile, "out-file", "o", "", "If provided, the path to store the resulting profile (e.g. after averaging)")
+	xhprofCmd.Flags().StringVarP(&function, "function", "", "", "If provided, one table for parents, and one for children of this function will be displayed")
 }
 
 var (
 	field      string
 	minPercent float32
 	outFile    string
+	function   string
 )
 
 var xhprofCmd = &cobra.Command{
@@ -51,22 +54,47 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	profile, err := avgMap.Flatten()
-	if err != nil {
-		return err
-	}
-
-	fieldInfo, ok := fieldsMap[field]
-	if !ok {
-		fmt.Printf("Provided field (%s) is not valid, defaulting to excl_wt\n", field)
-		field = "excl_wt"
-		fieldInfo = fieldsMap[field]
-	}
-
+	profile := avgMap.Flatten()
 	minPercent = minPercent / 100.0
-	err = renderProfile(profile, field, fieldInfo, minPercent)
-	if err != nil {
-		return err
+	if function == "" {
+		fieldInfo, ok := fieldsMap[field]
+		if !ok {
+			fmt.Printf("Provided field (%s) is not valid, defaulting to excl_wt\n", field)
+			field = "excl_wt"
+			fieldInfo = fieldsMap[field]
+		}
+
+		main := profile.GetMain()
+		minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
+		err := renderProfile(profile, field, fieldInfo, minValue)
+		if err != nil {
+			return err
+		}
+	} else {
+		family := avgMap.ComputeNearestFamily(function)
+		parentsProfile := family.Parents.Flatten()
+		childrenProfile := family.Children.Flatten()
+
+		field = "wt"
+		fieldInfo := fieldsMap[field]
+
+		functionCall := profile.GetCall(function)
+		if functionCall == nil {
+			return errors.New("Profile doesn't contain function")
+		}
+		minValue := minPercent * functionCall.GetFloat32Field(fieldInfo.Name)
+
+		fmt.Printf("Parents of %s:\n", function)
+		err := renderProfile(parentsProfile, field, fieldInfo, minValue)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Children of %s:\n", function)
+		err = renderProfile(childrenProfile, field, fieldInfo, minValue)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

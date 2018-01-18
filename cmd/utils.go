@@ -78,11 +78,8 @@ var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
 	},
 }
 
-func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, minPercent float32) error {
+func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, minValue float32) error {
 	profile.SortBy(fieldInfo.Name)
-
-	main := profile.GetMain()
-	minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
 
 	var fields []FieldInfo
 	if strings.HasPrefix(field, "excl_") {

@@ -44,7 +44,7 @@ func analyzeCallgrind(cmd *cobra.Command, args []string) error {
 	}
 
 	minPercent = minPercent / 100.0
-	err := renderProfile(avgProfile, field, fieldInfo, minPercent)
+	err := renderProfile(avgProfile, field, fieldInfo, -1, minPercent)
 	if err != nil {
 		return err
 	}

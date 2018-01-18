@@ -1,7 +1,6 @@
 package xhprof
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -33,6 +32,21 @@ func (p *PairCall) Divide(d float32) *PairCall {
 	return p
 }
 
+type NearestFamily struct {
+	Children      *PairCallMap
+	Parents       *PairCallMap
+	ChildrenCount int
+	ParentsCount  int
+}
+
+func NewNearestFamily() *NearestFamily {
+	f := new(NearestFamily)
+	f.Children = NewPairCallMap()
+	f.Parents = NewPairCallMap()
+
+	return f
+}
+
 type PairCallMap struct {
 	M map[string]*PairCall
 }
@@ -44,20 +58,13 @@ func NewPairCallMap() *PairCallMap {
 	return m
 }
 
-func (m *PairCallMap) Flatten() (*Profile, error) {
+func (m *PairCallMap) Flatten() *Profile {
 	var parent string
 	var child string
 
 	symbols := make(map[string]*Call)
 	for name, info := range m.M {
-		fns := strings.Split(name, "==>")
-		if len(fns) == 2 {
-			parent = fns[0]
-			child = fns[1]
-		} else {
-			parent = ""
-			child = fns[0]
-		}
+		parent, child = parsePairName(name)
 
 		call, ok := symbols[child]
 		if !ok {
@@ -87,12 +94,44 @@ func (m *PairCallMap) Flatten() (*Profile, error) {
 	profile.Calls = calls
 
 	main, ok := symbols["main()"]
-	if !ok || main == nil {
-		return nil, errors.New("Profile has no main()")
+	if ok {
+		profile.Main = main
 	}
-	profile.Main = main
 
-	return profile, nil
+	return profile
+}
+
+func (m *PairCallMap) ComputeNearestFamily(f string) *NearestFamily {
+	family := NewNearestFamily()
+
+	for name, info := range m.M {
+		parent, child := parsePairName(name)
+		if parent == f {
+			c, ok := family.Children.M[child]
+			if !ok {
+				c = new(PairCall)
+				family.Children.M[child] = c
+			}
+
+			c.WallTime += info.WallTime
+			c.Count += info.Count
+			family.ChildrenCount += info.Count
+		}
+
+		if child == f && parent != "" {
+			p, ok := family.Parents.M[parent]
+			if !ok {
+				p = new(PairCall)
+				family.Parents.M[parent] = p
+			}
+
+			p.WallTime += info.WallTime
+			p.Count += info.Count
+			family.ParentsCount += info.Count
+		}
+	}
+
+	return family
 }
 
 func AvgPairCallMaps(maps []*PairCallMap) *PairCallMap {
@@ -122,4 +161,16 @@ func AvgPairCallMaps(maps []*PairCallMap) *PairCallMap {
 	}
 
 	return res
+}
+
+func parsePairName(name string) (parent string, child string) {
+	fns := strings.Split(name, "==>")
+	if len(fns) == 2 {
+		parent = fns[0]
+		child = fns[1]
+	} else {
+		child = fns[0]
+	}
+
+	return
 }

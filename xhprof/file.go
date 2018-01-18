@@ -34,7 +34,7 @@ func (f *File) GetProfile() (*Profile, error) {
 		return nil, err
 	}
 
-	return m.Flatten()
+	return m.Flatten(), nil
 }
 
 func (f *File) GetPairCallMap() (m *PairCallMap, err error) {

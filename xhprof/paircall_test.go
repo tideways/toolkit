@@ -7,6 +7,31 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestParsePairName(t *testing.T) {
+	cases := []struct {
+		Name   string
+		Parent string
+		Child  string
+	}{
+		{
+			Name:   "main()",
+			Parent: "",
+			Child:  "main()",
+		},
+		{
+			Name:   "main()==>foo",
+			Parent: "main()",
+			Child:  "foo",
+		},
+	}
+
+	for _, c := range cases {
+		parent, child := parsePairName(c.Name)
+		assert.Equal(t, c.Parent, parent)
+		assert.Equal(t, c.Child, child)
+	}
+}
+
 func TestFlatten(t *testing.T) {
 	expected := &Profile{
 		Calls: []*Call{
@@ -156,4 +181,54 @@ func TestAvgPairCallMaps(t *testing.T) {
 
 	res := AvgPairCallMaps([]*PairCallMap{m1, m2, m3})
 	assert.EqualValues(t, expected, res)
+}
+
+func TestComputeNearestFamily(t *testing.T) {
+	expected := &NearestFamily{
+		Children: &PairCallMap{
+			M: map[string]*PairCall{
+				"bar": &PairCall{
+					WallTime: 200,
+					Count:    10,
+				},
+			},
+		},
+		Parents: &PairCallMap{
+			M: map[string]*PairCall{
+				"main()": &PairCall{
+					WallTime: 500,
+					Count:    2,
+				},
+			},
+		},
+		ChildrenCount: 10,
+		ParentsCount:  2,
+	}
+
+	m := &PairCallMap{
+		M: map[string]*PairCall{
+			"main()": &PairCall{
+				WallTime: 1000,
+				Count:    1,
+				CpuTime:  400,
+				Memory:   1500,
+			},
+			"main()==>foo": &PairCall{
+				WallTime: 500,
+				Count:    2,
+				CpuTime:  200,
+				Memory:   700,
+			},
+			"foo==>bar": &PairCall{
+				WallTime: 200,
+				Count:    10,
+				CpuTime:  100,
+				Memory:   300,
+			},
+		},
+	}
+
+	f := m.ComputeNearestFamily("foo")
+
+	assert.EqualValues(t, expected, f)
 }

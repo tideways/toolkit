@@ -20,6 +20,16 @@ func (p *Profile) GetMain() *Call {
 	return p.Main
 }
 
+func (p *Profile) GetCall(name string) *Call {
+	for _, c := range p.Calls {
+		if c.Name == name {
+			return c
+		}
+	}
+
+	return nil
+}
+
 type ProfileByField struct {
 	Profile *Profile
 	Field   string

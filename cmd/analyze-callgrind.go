@@ -34,7 +34,7 @@ func analyzeCallgrind(cmd *cobra.Command, args []string) error {
 		profiles = append(profiles, profile)
 	}
 
-	avgProfile := xhprof.AvgProfiles(profiles)
+	profile := xhprof.AvgProfiles(profiles)
 
 	fieldInfo, ok := fieldsMap[field]
 	if !ok {
@@ -44,7 +44,9 @@ func analyzeCallgrind(cmd *cobra.Command, args []string) error {
 	}
 
 	minPercent = minPercent / 100.0
-	err := renderProfile(avgProfile, field, fieldInfo, -1, minPercent)
+	main := profile.GetMain()
+	minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
+	err := renderProfile(profile, field, fieldInfo, minValue)
 	if err != nil {
 		return err
 	}

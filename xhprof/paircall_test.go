@@ -97,8 +97,7 @@ func TestFlatten(t *testing.T) {
 		},
 	}
 
-	profile, err := m.Flatten()
-	require.Nil(t, err)
+	profile := m.Flatten()
 	require.IsType(t, profile, expected)
 
 	profile.SortBy("WallTime")

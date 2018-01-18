@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/tideways/toolkit/xhprof"
@@ -54,17 +55,47 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 	}
 
 	profile := avgMap.Flatten()
-	fieldInfo, ok := fieldsMap[field]
-	if !ok {
-		fmt.Printf("Provided field (%s) is not valid, defaulting to excl_wt\n", field)
-		field = "excl_wt"
-		fieldInfo = fieldsMap[field]
-	}
-
 	minPercent = minPercent / 100.0
-	err := renderProfile(profile, field, fieldInfo, -1, minPercent)
-	if err != nil {
-		return err
+	if function == "" {
+		fieldInfo, ok := fieldsMap[field]
+		if !ok {
+			fmt.Printf("Provided field (%s) is not valid, defaulting to excl_wt\n", field)
+			field = "excl_wt"
+			fieldInfo = fieldsMap[field]
+		}
+
+		main := profile.GetMain()
+		minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
+		err := renderProfile(profile, field, fieldInfo, minValue)
+		if err != nil {
+			return err
+		}
+	} else {
+		family := avgMap.ComputeNearestFamily(function)
+		parentsProfile := family.Parents.Flatten()
+		childrenProfile := family.Children.Flatten()
+
+		field = "wt"
+		fieldInfo := fieldsMap[field]
+
+		functionCall := profile.GetCall(function)
+		if functionCall == nil {
+			return errors.New("Profile doesn't contain function")
+		}
+
+		minValue := minPercent * functionCall.GetFloat32Field(fieldInfo.Name)
+		fmt.Printf("Parents of %s:\n", function)
+		err := renderProfile(parentsProfile, field, fieldInfo, minValue)
+		if err != nil {
+			return err
+		}
+
+		minValue = minPercent * functionCall.GetFloat32Field(fieldInfo.Name)
+		fmt.Printf("Children of %s:\n", function)
+		err = renderProfile(childrenProfile, field, fieldInfo, minValue)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

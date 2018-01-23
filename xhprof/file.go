@@ -20,15 +20,6 @@ func NewFile(path, format string) (f *File) {
 }
 
 func (f *File) GetProfile() (*Profile, error) {
-	if f.Format == "callgrind" {
-		fh, err := os.Open(f.Path)
-		if err != nil {
-			return nil, err
-		}
-
-		return ParseCallgrind(fh)
-	}
-
 	m, err := f.GetPairCallMap()
 	if err != nil {
 		return nil, err
@@ -38,6 +29,15 @@ func (f *File) GetProfile() (*Profile, error) {
 }
 
 func (f *File) GetPairCallMap() (m *PairCallMap, err error) {
+	if f.Format == "callgrind" {
+		fh, err := os.Open(f.Path)
+		if err != nil {
+			return nil, err
+		}
+
+		return ParseCallgrind(fh)
+	}
+
 	var rawData []byte
 	if rawData, err = ioutil.ReadFile(f.Path); err != nil {
 		return

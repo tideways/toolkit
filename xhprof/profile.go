@@ -49,6 +49,17 @@ func (p *Profile) SortBy(field string) error {
 	return nil
 }
 
+func (p *Profile) SelectGreater(field string, min float32) *Profile {
+	r := NewProfile()
+	for _, c := range p.Calls {
+		if c.GetFloat32Field(field) >= min {
+			r.Calls = append(r.Calls, c)
+		}
+	}
+
+	return r
+}
+
 func (p *Profile) Subtract(o *Profile) *ProfileDiff {
 	d := new(ProfileDiff)
 	diff := make(map[string]*CallDiff)

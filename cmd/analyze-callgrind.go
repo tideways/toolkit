@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/tideways/toolkit/xhprof"
 
@@ -10,8 +11,8 @@ import (
 
 func init() {
 	RootCmd.AddCommand(analyzeCallgrindCmd)
-	analyzeCallgrindCmd.Flags().StringVarP(&field, "field", "f", "excl_wt", "Field to view/sort (wt, excl_wt)")
-	analyzeCallgrindCmd.Flags().Float32VarP(&minPercent, "min", "m", 1, "Display items having minimum percentage (default 1%) of --field, with respect to main()")
+	analyzeCallgrindCmd.Flags().StringVarP(&field, "dimension", "d", "excl_wt", "Dimension to view/sort (wt, excl_wt)")
+	analyzeCallgrindCmd.Flags().Float32VarP(&minPercent, "min", "m", 1, "Display items having minimum percentage (default 1%) of --dimension, with respect to main()")
 }
 
 var analyzeCallgrindCmd = &cobra.Command{
@@ -23,18 +24,19 @@ var analyzeCallgrindCmd = &cobra.Command{
 }
 
 func analyzeCallgrind(cmd *cobra.Command, args []string) error {
-	profiles := make([]*xhprof.Profile, 0, len(args))
+	maps := make([]*xhprof.PairCallMap, 0, len(args))
 	for _, arg := range args {
 		f := xhprof.NewFile(arg, "callgrind")
-		profile, err := f.GetProfile()
+		m, err := f.GetPairCallMap()
 		if err != nil {
 			return err
 		}
 
-		profiles = append(profiles, profile)
+		maps = append(maps, m)
 	}
 
-	profile := xhprof.AvgProfiles(profiles)
+	avgMap := xhprof.AvgPairCallMaps(maps)
+	profile := avgMap.Flatten()
 
 	fieldInfo, ok := fieldsMap[field]
 	if !ok {
@@ -43,9 +45,16 @@ func analyzeCallgrind(cmd *cobra.Command, args []string) error {
 		fieldInfo = fieldsMap[field]
 	}
 
+	profile.SortBy(fieldInfo.Name)
+
+	// Change default to 10 for exclusive fields, only when user
+	// hasn't manually provided 1%
+	if strings.HasPrefix(field, "excl_") && !cmd.Flags().Changed("min") {
+		minPercent = float32(10)
+	}
 	minPercent = minPercent / 100.0
-	main := profile.GetMain()
-	minValue := minPercent * main.GetFloat32Field(fieldInfo.Name)
+	minValue := minPercent * profile.Calls[0].GetFloat32Field(fieldInfo.Name)
+	profile = profile.SelectGreater(fieldInfo.Name, minValue)
 	err := renderProfile(profile, field, fieldInfo, minValue)
 	if err != nil {
 		return err

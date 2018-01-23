@@ -79,22 +79,20 @@ var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
 }
 
 func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, minValue float32) error {
-	profile.SortBy(fieldInfo.Name)
-
+	header := fieldInfo.Header
+	exclHeader := "Excl. " + fieldInfo.Header
 	var fields []FieldInfo
 	if strings.HasPrefix(field, "excl_") {
 		fields = []FieldInfo{fieldsMap[strings.TrimPrefix(field, "excl_")], fieldInfo}
+		exclHeader = fmt.Sprintf("%s (>= %2.2f %s)", exclHeader, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
 	} else {
 		fields = []FieldInfo{fieldInfo, fieldsMap["excl_"+field]}
+		header = fmt.Sprintf("%s (>= %2.2f %s)", header, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Function", "Count", fieldInfo.Header, fmt.Sprintf("Excl. %s", fieldInfo.Header)})
+	table.SetHeader([]string{"Function", "Count", header, exclHeader})
 	for _, call := range profile.Calls {
-		if call.GetFloat32Field(fieldInfo.Name) < minValue {
-			break
-		}
-
 		table.Append(getRow(call, fields))
 	}
 

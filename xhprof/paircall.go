@@ -58,6 +58,18 @@ func NewPairCallMap() *PairCallMap {
 	return m
 }
 
+func (m *PairCallMap) NewPairCall(name string) *PairCall {
+	pc, ok := m.M[name]
+	if ok {
+		return pc
+	}
+
+	pc = new(PairCall)
+	m.M[name] = pc
+
+	return pc
+}
+
 func (m *PairCallMap) Flatten() *Profile {
 	var parent string
 	var child string
@@ -173,4 +185,14 @@ func parsePairName(name string) (parent string, child string) {
 	}
 
 	return
+}
+
+func pairName(parent, child string) string {
+	if parent == "" {
+		return child
+	} else if child == "" {
+		return parent
+	}
+
+	return parent + "==>" + child
 }

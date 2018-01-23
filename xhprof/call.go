@@ -44,8 +44,15 @@ func (c *Call) AddPairCall(p *PairCall) *Call {
 	c.ExclusiveWallTime += p.WallTime
 	c.CpuTime += p.CpuTime
 	c.ExclusiveCpuTime += p.CpuTime
-	c.IoTime += (p.WallTime - p.CpuTime)
-	c.ExclusiveIoTime += (p.WallTime - p.CpuTime)
+
+	io := p.WallTime - p.CpuTime
+	if io < 0 {
+		io = 0
+	}
+
+	c.IoTime += io
+	c.ExclusiveIoTime += io
+
 	c.Memory += p.Memory
 	c.PeakMemory += p.PeakMemory
 	c.ExclusiveMemory += p.Memory
@@ -57,7 +64,13 @@ func (c *Call) SubtractExcl(p *PairCall) *Call {
 	c.ExclusiveWallTime -= p.WallTime
 	c.ExclusiveCpuTime -= p.CpuTime
 	c.ExclusiveMemory -= p.Memory
-	c.ExclusiveIoTime -= (p.WallTime - p.CpuTime)
+
+	io := p.WallTime - p.CpuTime
+	if io < 0 {
+		io = 0
+	}
+
+	c.ExclusiveIoTime -= io
 
 	return c
 }

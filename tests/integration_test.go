@@ -66,14 +66,18 @@ func TestParseWPIndexCallgrind(t *testing.T) {
 			&xhprof.Call{
 				Name:              "main()",
 				Count:             1,
-				WallTime:          305041,
+				WallTime:          305039,
 				ExclusiveWallTime: 54,
+				IoTime:            305039,
+				ExclusiveIoTime:   54,
 			},
 			&xhprof.Call{
 				Name:              "require::/var/www/wordpress/wp-blog-header.php",
 				Count:             1,
-				WallTime:          304980,
-				ExclusiveWallTime: 85,
+				WallTime:          304981,
+				ExclusiveWallTime: 86,
+				IoTime:            304981,
+				ExclusiveIoTime:   86,
 			},
 		},
 	}
@@ -84,7 +88,7 @@ func TestParseWPIndexCallgrind(t *testing.T) {
 	require.NotNil(t, profile)
 
 	require.NotNil(t, profile.Main)
-	assert.EqualValues(t, profile.Main, expected.Calls[0])
+	assert.EqualValues(t, expected.Calls[0], profile.Main)
 
 	for _, c := range profile.Calls {
 		if c.Name == expected.Calls[1].Name {

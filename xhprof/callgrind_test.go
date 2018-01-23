@@ -9,45 +9,32 @@ import (
 )
 
 func TestParseCallgrind(t *testing.T) {
-	expected := Profile{
-		Calls: []*Call{
-			&Call{
-				Name:              "main()",
-				Count:             1,
-				WallTime:          820,
-				ExclusiveWallTime: 20,
+	expected := &PairCallMap{
+		M: map[string]*PairCall{
+			"main()": &PairCall{
+				Count:    1,
+				WallTime: 820,
 			},
-			&Call{
-				Name:              "func2",
-				Count:             5,
-				WallTime:          700,
-				ExclusiveWallTime: 700,
+			"main()==>func2": &PairCall{
+				Count:    3,
+				WallTime: 400,
 			},
-			&Call{
-				Name:              "func1",
-				Count:             1,
-				WallTime:          400,
-				ExclusiveWallTime: 100,
+			"main()==>func1": &PairCall{
+				Count:    1,
+				WallTime: 400,
+			},
+			"func1==>func2": &PairCall{
+				Count:    2,
+				WallTime: 300,
 			},
 		},
 	}
 
 	f, err := os.Open("testdata/callgrind-simple.out")
-
 	require.Nil(t, err)
 
-	profile, err := ParseCallgrind(f)
-
+	m, err := ParseCallgrind(f)
 	require.Nil(t, err)
-	require.NotNil(t, profile)
-	require.Len(t, profile.Calls, len(expected.Calls))
 
-	require.NotNil(t, profile.Main)
-	assert.EqualValues(t, profile.Main, expected.Calls[0])
-
-	profile.SortBy("WallTime")
-
-	for i, c := range profile.Calls {
-		assert.EqualValues(t, expected.Calls[i], c)
-	}
+	assert.EqualValues(t, expected, m)
 }

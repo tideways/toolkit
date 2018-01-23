@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/tideways/toolkit/xhprof"
 
@@ -23,18 +24,19 @@ var analyzeCallgrindCmd = &cobra.Command{
 }
 
 func analyzeCallgrind(cmd *cobra.Command, args []string) error {
-	profiles := make([]*xhprof.Profile, 0, len(args))
+	maps := make([]*xhprof.PairCallMap, 0, len(args))
 	for _, arg := range args {
 		f := xhprof.NewFile(arg, "callgrind")
-		profile, err := f.GetProfile()
+		m, err := f.GetPairCallMap()
 		if err != nil {
 			return err
 		}
 
-		profiles = append(profiles, profile)
+		maps = append(maps, m)
 	}
 
-	profile := xhprof.AvgProfiles(profiles)
+	avgMap := xhprof.AvgPairCallMaps(maps)
+	profile := avgMap.Flatten()
 
 	fieldInfo, ok := fieldsMap[field]
 	if !ok {
@@ -44,6 +46,12 @@ func analyzeCallgrind(cmd *cobra.Command, args []string) error {
 	}
 
 	profile.SortBy(fieldInfo.Name)
+
+	// Change default to 10 for exclusive fields, only when user
+	// hasn't manually provided 1%
+	if strings.HasPrefix(field, "excl_") && !cmd.Flags().Changed("min") {
+		minPercent = float32(10)
+	}
 	minPercent = minPercent / 100.0
 	minValue := minPercent * profile.Calls[0].GetFloat32Field(fieldInfo.Name)
 	profile = profile.SelectGreater(fieldInfo.Name, minValue)

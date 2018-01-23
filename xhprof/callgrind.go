@@ -20,7 +20,7 @@ var (
 	emptyPattern         = regexp.MustCompile(`^\s*$`)
 )
 
-func ParseCallgrind(rd io.Reader) (*Profile, error) {
+func ParseCallgrind(rd io.Reader) (*PairCallMap, error) {
 	p := NewCallgrindParser(rd)
 	return p.parseFile()
 }
@@ -29,7 +29,7 @@ type CallgrindParser struct {
 	scanner   *bufio.Scanner
 	headers   map[string]string
 	positions map[string]string
-	calls     map[string]*Call
+	pcMap     *PairCallMap
 	lastFn    string
 	lastCfn   string
 }
@@ -39,8 +39,9 @@ func NewCallgrindParser(rd io.Reader) *CallgrindParser {
 	p.scanner = bufio.NewScanner(rd)
 	p.headers = make(map[string]string)
 	p.positions = make(map[string]string)
-	p.calls = make(map[string]*Call)
-	p.calls["main()"] = &Call{Name: "main()", Count: 1}
+	p.pcMap = NewPairCallMap()
+	p.pcMap.NewPairCall("main()")
+	p.pcMap.M["main()"].Count = 1
 
 	return p
 }
@@ -92,7 +93,7 @@ func (p *CallgrindParser) readLine() (text string, eof bool, err error) {
 	return
 }
 
-func (p *CallgrindParser) parseFile() (profile *Profile, err error) {
+func (p *CallgrindParser) parseFile() (pcMap *PairCallMap, err error) {
 	var text string
 	var eof bool
 	text, eof, err = p.readLine()
@@ -126,21 +127,17 @@ func (p *CallgrindParser) parseFile() (profile *Profile, err error) {
 		return
 	}
 
-	if sum, ok := p.headers["summary"]; ok {
+	if sum, ok := p.headers["summary"]; ok && p.pcMap.M["main()"].WallTime == 0 {
 		var wt float64
 		wt, err = strconv.ParseFloat(sum, 32)
 		if err != nil {
 			return
 		}
 
-		p.calls["main()"].WallTime = float32(wt)
+		p.pcMap.M["main()"].WallTime = float32(wt)
 	}
 
-	profile = NewProfile()
-	profile.Main = p.calls["main()"]
-	for _, c := range p.calls {
-		profile.Calls = append(profile.Calls, c)
-	}
+	pcMap = p.pcMap
 
 	return
 }
@@ -207,8 +204,8 @@ func (p *CallgrindParser) parsePosition() (err error) {
 		p.lastCfn = posName
 	}
 
-	if _, ok := p.calls[posName]; !ok {
-		p.calls[posName] = &Call{Name: posName}
+	if p.lastFn != "" && p.lastCfn != "" {
+		p.pcMap.NewPairCall(pairName(p.lastFn, p.lastCfn))
 	}
 
 	return nil
@@ -226,7 +223,7 @@ func (p *CallgrindParser) parseCalls() (err error) {
 		return errors.New("Calls expression encountered without called function being defined")
 	}
 
-	p.calls[p.lastCfn].Count += count
+	p.pcMap.M[pairName(p.lastFn, p.lastCfn)].Count += count
 	eof := false
 	text, eof, err = p.readLine()
 	if eof || err != nil {
@@ -243,6 +240,10 @@ func (p *CallgrindParser) parseCalls() (err error) {
 }
 
 func (p *CallgrindParser) parseCosts(callCosts bool) (err error) {
+	if !callCosts && !(p.lastFn == "main()" && p.lastCfn == "") {
+		return
+	}
+
 	text := p.scanner.Text()
 	match := costsPattern.FindString(text)
 	cost, err := strconv.ParseFloat(strings.TrimSpace(strings.Split(match, " ")[1]), 32)
@@ -255,10 +256,9 @@ func (p *CallgrindParser) parseCosts(callCosts bool) (err error) {
 		return
 	}
 
-	p.calls[p.lastFn].WallTime += float32(cost)
-	if !callCosts {
-		p.calls[p.lastFn].ExclusiveWallTime += float32(cost)
-
+	p.pcMap.M[pairName(p.lastFn, p.lastCfn)].WallTime += float32(cost)
+	if p.lastFn == "main()" && p.lastCfn != "" {
+		p.pcMap.M["main()"].WallTime += float32(cost)
 	}
 
 	return

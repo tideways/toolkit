@@ -16,6 +16,8 @@ type Call struct {
 	ExclusiveCpuTime  float32
 	ExclusiveMemory   float32
 	ExclusiveIoTime   float32
+
+	graphvizId int
 }
 
 func (c *Call) GetFloat32Field(field string) float32 {

@@ -12,7 +12,7 @@ import (
 func init() {
 	RootCmd.AddCommand(analyzeCallgrindCmd)
 	analyzeCallgrindCmd.Flags().StringVarP(&field, "dimension", "d", "excl_wt", "Dimension to view/sort (wt, excl_wt)")
-	analyzeCallgrindCmd.Flags().Float32VarP(&minPercent, "min", "m", 1, "Display items having minimum percentage (default 1%) of --dimension, with respect to main()")
+	analyzeCallgrindCmd.Flags().Float32VarP(&minPercent, "min", "m", 1, "Display items having minimum percentage (default 1%) of --dimension, with respect to max value")
 }
 
 var analyzeCallgrindCmd = &cobra.Command{

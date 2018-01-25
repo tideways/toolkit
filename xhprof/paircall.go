@@ -70,13 +70,10 @@ func (m *PairCallMap) NewPairCall(name string) *PairCall {
 	return pc
 }
 
-func (m *PairCallMap) Flatten() *Profile {
-	var parent string
-	var child string
-
+func (m *PairCallMap) GetCallMap() map[string]*Call {
 	symbols := make(map[string]*Call)
 	for name, info := range m.M {
-		parent, child = parsePairName(name)
+		parent, child := parsePairName(name)
 
 		call, ok := symbols[child]
 		if !ok {
@@ -97,6 +94,12 @@ func (m *PairCallMap) Flatten() *Profile {
 		call.SubtractExcl(info)
 		symbols[parent] = call
 	}
+
+	return symbols
+}
+
+func (m *PairCallMap) Flatten() *Profile {
+	symbols := m.GetCallMap()
 
 	profile := new(Profile)
 	calls := make([]*Call, 0, len(symbols))
@@ -144,6 +147,21 @@ func (m *PairCallMap) ComputeNearestFamily(f string) *NearestFamily {
 	}
 
 	return family
+}
+
+func (m *PairCallMap) GetChildrenMap() map[string][]string {
+	r := make(map[string][]string)
+
+	for name, _ := range m.M {
+		parent, child := parsePairName(name)
+		if _, ok := r[parent]; !ok {
+			r[parent] = make([]string, 0, 1)
+		}
+
+		r[parent] = append(r[parent], child)
+	}
+
+	return r
 }
 
 func AvgPairCallMaps(maps []*PairCallMap) *PairCallMap {

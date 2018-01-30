@@ -44,7 +44,7 @@ func generateXhprofGraphviz(cmd *cobra.Command, args []string) error {
 	avgMap := xhprof.AvgPairCallMaps(maps)
 
 	threshold /= 100
-	dot, err := xhprof.GenerateDotScript(avgMap, threshold, function, criticalPath)
+	dot, err := xhprof.GenerateDotScript(avgMap, threshold, function, criticalPath, nil, nil)
 	if err != nil {
 		return err
 	}

@@ -32,6 +32,16 @@ func (p *PairCall) Divide(d float32) *PairCall {
 	return p
 }
 
+func (p *PairCall) Subtract(o *PairCall) *PairCall {
+	p.Count -= o.Count
+	p.WallTime -= o.WallTime
+	p.CpuTime -= o.CpuTime
+	p.Memory -= o.Memory
+	p.PeakMemory -= o.PeakMemory
+
+	return p
+}
+
 type NearestFamily struct {
 	Children      *PairCallMap
 	Parents       *PairCallMap
@@ -159,6 +169,34 @@ func (m *PairCallMap) GetChildrenMap() map[string][]string {
 		}
 
 		r[parent] = append(r[parent], child)
+	}
+
+	return r
+}
+
+func (m *PairCallMap) Copy() *PairCallMap {
+	r := NewPairCallMap()
+
+	for name, info := range m.M {
+		c := new(PairCall)
+		*c = *info
+		r.M[name] = c
+	}
+
+	return r
+}
+
+func (m *PairCallMap) Subtract(o *PairCallMap) *PairCallMap {
+	r := m.Copy()
+
+	for name, info := range o.M {
+		p, ok := r.M[name]
+		if !ok {
+			p = new(PairCall)
+			r.M[name] = p
+		}
+
+		p.Subtract(info)
 	}
 
 	return r

@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-func GenerateDotScript(m *PairCallMap, threshold float32, function string, criticalPath bool) (string, error) {
+func GenerateDotScript(m *PairCallMap, threshold float32, function string, criticalPath bool, right map[string]*Call, left map[string]*Call) (string, error) {
 	result := "digraph call_graph {\n"
 
 	maxWidth := float32(5)
@@ -83,7 +83,39 @@ func GenerateDotScript(m *PairCallMap, threshold float32, function string, criti
 			n = fmt.Sprintf("%s\\nInc: %.3f ms (%.1f%%)", name, c.WallTime/1000, 100*c.WallTime/mainWt)
 		}
 
-		label := fmt.Sprintf(", label=\"%s\\nExcl: %.3f ms (%.1f%%)\\n%d total calls\"", n, c.ExclusiveWallTime/1000, 100*c.ExclusiveWallTime/mainWt, c.Count)
+		var label string
+		if left == nil {
+			label = fmt.Sprintf(", label=\"%s\\nExcl: %.3f ms (%.1f%%)\\n%d total calls\"", n, c.ExclusiveWallTime/1000, 100*c.ExclusiveWallTime/mainWt, c.Count)
+		} else {
+			leftC, lOk := left[name]
+			rightC, rOk := right[name]
+
+			if lOk && rOk {
+				label = fmt.Sprintf(
+					", label=\"%s\\nInc: %.3f ms - %.3f ms = %.3f ms\\nExcl: %.3f ms - %.3f ms = %.3f ms\\nCalls: %d - %d = %d\"",
+					name,
+					leftC.WallTime/1000, rightC.WallTime/1000, c.WallTime/1000,
+					leftC.ExclusiveWallTime/1000, rightC.ExclusiveWallTime/1000, c.ExclusiveWallTime/1000,
+					leftC.Count, rightC.Count, c.Count,
+				)
+			} else if lOk {
+				label = fmt.Sprintf(
+					", label=\"%s\\nInc: %.3f ms - %.3f ms = %.3f ms\\nExcl: %.3f ms - %.3f ms = %.3f ms\\nCalls: %d - %d = %d\"",
+					name,
+					leftC.WallTime/1000, 0, c.WallTime/1000,
+					leftC.ExclusiveWallTime/1000, 0, c.ExclusiveWallTime/1000,
+					leftC.Count, 0, c.Count,
+				)
+			} else {
+				label = fmt.Sprintf(
+					", label=\"%s\\nInc: %.3f ms - %.3f ms = %.3f ms\\nExcl: %.3f ms - %.3f ms = %.3f ms\\nCalls: %d - %d = %d\"",
+					name,
+					0, rightC.WallTime/1000, c.WallTime/1000,
+					0, rightC.ExclusiveWallTime/1000, c.ExclusiveWallTime/1000,
+					0, rightC.Count, c.Count,
+				)
+			}
+		}
 		result += fmt.Sprintf("N%d[shape=%s %s%s%s%s%s];\n", c.graphvizId, shape, label, width, height, fontSize, fillColor)
 	}
 
@@ -135,6 +167,14 @@ func GenerateDotScript(m *PairCallMap, threshold float32, function string, criti
 	result += "\n}"
 
 	return result, nil
+}
+
+func GenerateDiffDotScript(m1, m2 *PairCallMap, threshold float32) (string, error) {
+	right := m1.GetCallMap()
+	left := m2.GetCallMap()
+	diff := m2.Subtract(m1)
+
+	return GenerateDotScript(diff, threshold, "", true, right, left)
 }
 
 func getCriticalPath(m *PairCallMap) (map[string]bool, map[string]bool) {

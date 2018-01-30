@@ -40,13 +40,13 @@ func GenerateDotScript(m *PairCallMap, threshold float32, function string, criti
 	curId := 0
 	maxWt := float32(0)
 	for name, c := range callMap {
-		if function == "" && (c.WallTime/mainWt) < threshold {
+		if function == "" && float32(math.Abs(float64(c.WallTime/mainWt))) < threshold {
 			delete(callMap, name)
 			continue
 		}
 
-		if maxWt == float32(0) || maxWt < c.ExclusiveWallTime {
-			maxWt = c.ExclusiveWallTime
+		if maxWt == float32(0) || maxWt < float32(math.Abs(float64(c.ExclusiveWallTime))) {
+			maxWt = float32(math.Abs(float64(c.ExclusiveWallTime)))
 		}
 
 		c.graphvizId = curId
@@ -58,7 +58,7 @@ func GenerateDotScript(m *PairCallMap, threshold float32, function string, criti
 		if c.ExclusiveWallTime == 0 {
 			sizingFactor = maxSizingRatio
 		} else {
-			sizingFactor = float32(math.Min(float64(maxWt/c.ExclusiveWallTime), float64(maxSizingRatio)))
+			sizingFactor = float32(math.Min(float64(maxWt)/math.Abs(float64(c.ExclusiveWallTime)), float64(maxSizingRatio)))
 		}
 
 		fillColor := ""
@@ -193,7 +193,7 @@ func getCriticalPath(m *PairCallMap) (map[string]bool, map[string]bool) {
 					continue
 				}
 
-				if maxChild == "" || m.M[pairName(node, child)].WallTime > m.M[pairName(node, maxChild)].WallTime {
+				if maxChild == "" || float32(math.Abs(float64(m.M[pairName(node, child)].WallTime))) > float32(math.Abs(float64(m.M[pairName(node, maxChild)].WallTime))) {
 					maxChild = child
 				}
 			}

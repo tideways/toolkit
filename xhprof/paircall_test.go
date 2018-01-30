@@ -231,3 +231,63 @@ func TestComputeNearestFamily(t *testing.T) {
 
 	assert.EqualValues(t, expected, f)
 }
+
+func TestSubtractPairCallMaps(t *testing.T) {
+	expected := &PairCallMap{
+		M: map[string]*PairCall{
+			"main()": &PairCall{
+				WallTime: 500,
+				Count:    0,
+				CpuTime:  300,
+				Memory:   800,
+			},
+			"main()==>foo": &PairCall{
+				WallTime: 600,
+				Count:    2,
+				CpuTime:  300,
+				Memory:   900,
+			},
+			"foo==>bar": &PairCall{
+				WallTime: -300,
+				Count:    -10,
+				CpuTime:  -150,
+				Memory:   -300,
+			},
+		},
+	}
+	m1 := &PairCallMap{
+		M: map[string]*PairCall{
+			"main()": &PairCall{
+				WallTime: 800,
+				Count:    1,
+				CpuTime:  400,
+				Memory:   1000,
+			},
+			"main()==>foo": &PairCall{
+				WallTime: 600,
+				Count:    2,
+				CpuTime:  300,
+				Memory:   900,
+			},
+		},
+	}
+	m2 := &PairCallMap{
+		M: map[string]*PairCall{
+			"main()": &PairCall{
+				WallTime: 300,
+				Count:    1,
+				CpuTime:  100,
+				Memory:   200,
+			},
+			"foo==>bar": &PairCall{
+				WallTime: 300,
+				Count:    10,
+				CpuTime:  150,
+				Memory:   300,
+			},
+		},
+	}
+
+	diff := m1.Subtract(m2)
+	assert.EqualValues(t, expected, diff)
+}

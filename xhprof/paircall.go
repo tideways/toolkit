@@ -32,6 +32,16 @@ func (p *PairCall) Divide(d float32) *PairCall {
 	return p
 }
 
+func (p *PairCall) Subtract(o *PairCall) *PairCall {
+	p.Count -= o.Count
+	p.WallTime -= o.WallTime
+	p.CpuTime -= o.CpuTime
+	p.Memory -= o.Memory
+	p.PeakMemory -= o.PeakMemory
+
+	return p
+}
+
 type NearestFamily struct {
 	Children      *PairCallMap
 	Parents       *PairCallMap
@@ -70,13 +80,10 @@ func (m *PairCallMap) NewPairCall(name string) *PairCall {
 	return pc
 }
 
-func (m *PairCallMap) Flatten() *Profile {
-	var parent string
-	var child string
-
+func (m *PairCallMap) GetCallMap() map[string]*Call {
 	symbols := make(map[string]*Call)
 	for name, info := range m.M {
-		parent, child = parsePairName(name)
+		parent, child := parsePairName(name)
 
 		call, ok := symbols[child]
 		if !ok {
@@ -97,6 +104,12 @@ func (m *PairCallMap) Flatten() *Profile {
 		call.SubtractExcl(info)
 		symbols[parent] = call
 	}
+
+	return symbols
+}
+
+func (m *PairCallMap) Flatten() *Profile {
+	symbols := m.GetCallMap()
 
 	profile := new(Profile)
 	calls := make([]*Call, 0, len(symbols))
@@ -144,6 +157,49 @@ func (m *PairCallMap) ComputeNearestFamily(f string) *NearestFamily {
 	}
 
 	return family
+}
+
+func (m *PairCallMap) GetChildrenMap() map[string][]string {
+	r := make(map[string][]string)
+
+	for name, _ := range m.M {
+		parent, child := parsePairName(name)
+		if _, ok := r[parent]; !ok {
+			r[parent] = make([]string, 0, 1)
+		}
+
+		r[parent] = append(r[parent], child)
+	}
+
+	return r
+}
+
+func (m *PairCallMap) Copy() *PairCallMap {
+	r := NewPairCallMap()
+
+	for name, info := range m.M {
+		c := new(PairCall)
+		*c = *info
+		r.M[name] = c
+	}
+
+	return r
+}
+
+func (m *PairCallMap) Subtract(o *PairCallMap) *PairCallMap {
+	r := m.Copy()
+
+	for name, info := range o.M {
+		p, ok := r.M[name]
+		if !ok {
+			p = new(PairCall)
+			r.M[name] = p
+		}
+
+		p.Subtract(info)
+	}
+
+	return r
 }
 
 func AvgPairCallMaps(maps []*PairCallMap) *PairCallMap {

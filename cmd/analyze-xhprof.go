@@ -109,5 +109,7 @@ func analyzeXhprof(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	fmt.Printf("Looking for a Web UI and SQL Profiling Support? Try our SaaS: https://tideways.io\n")
+
 	return nil
 }

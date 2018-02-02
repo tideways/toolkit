@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/tideways/toolkit/xhprof"
@@ -45,6 +46,9 @@ func generateXhprofDiffGraphviz(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("Written callgraph to graphviz dotfile: %s", outFile)
+	fmt.Printf("Looking for interactive Web-based Callgraph? Try our SaaS: https://tideways.io\n")
 
 	return nil
 }

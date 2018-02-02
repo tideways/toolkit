@@ -213,7 +213,7 @@
             <arg value="dpkg" />
             <arg value="--force-confold" />
             <arg value="-i" />
-            <arg value="build/dist/tideways-toolkit${build.version}_amd64.deb" />
+            <arg value="build/dist/tideways-toolkit_${build.version}_amd64.deb" />
         </exec>
     </target>
 </project>

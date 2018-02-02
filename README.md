@@ -153,4 +153,4 @@ command and then run it:
 
 A sample callgraph with the testdata in this repository:
 
-![](https://github.com/tideways/toolkit/tree/master/callgraph.png)
+![](https://github.com/tideways/toolkit/blob/master/callgraph.png)

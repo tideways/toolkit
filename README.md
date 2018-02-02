@@ -6,7 +6,13 @@ interacting with PHP or with debugging extensions for PHP.
 
 ## Installing
 
-Tideways Toolkit is written in Go and you can install it with the Go compiler
+We recommend installing Tideways Toolkit by using one of the binary downloads
+provided on each tagged release:
+
+https://github.com/tideways/toolkit/releases
+
+If you want to build from source, Tideways Toolkit is written in Go and you can
+install it with the Go compiler
 
     go get github.com/tideways/toolkit
 
@@ -18,8 +24,6 @@ this directory, putting the environment varible into `.bashrc`:
 
 You will then find the compiled binary in `/home/$USER/code/golang/bin/toolkit` and can copy
 or symlink it to `/usr/local/bin/tk`.
-
-One of the next tasks will also be to compile binaries and packages for your convenience.
 
 ## Tools
 

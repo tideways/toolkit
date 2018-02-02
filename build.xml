@@ -1,0 +1,219 @@
+<?xml version="1.0" ?>
+<project name="Tideways Toolkit" basedir="." default="build">
+    <target name="clean">
+        <delete dir="build/" />
+    </target>
+
+    <property file="build.properties.local" />
+    <property file="build.properties" />
+
+    <target name="test" depends="get">
+        <exec executable="go" failonerror="true">
+            <arg value="test" />
+        </exec>
+    </target>
+
+    <target name="check-build-version-isset">
+        <condition property="build.version.isset">
+           <isset property="build.version"/>
+        </condition>
+        <fail message="Property {build.version} is missing." unless="build.version.isset" />
+    </target>
+
+    <target name="prepare" depends="check-build-version-isset,clean">
+        <mkdir dir="build" />
+        <mkdir dir="build/dist" />
+        <mkdir dir="build/packaging/deb-amd64/usr/local/bin" />
+        <mkdir dir="build/packaging/deb-i386/usr/local/bin" />
+        <mkdir dir="build/packaging/rpm-amd64/usr/local/bin" />
+        <mkdir dir="build/packaging/rpm-i386/usr/local/bin" />
+        <mkdir dir="build/packaging/tideways-toolkit_${build.version}" />
+    </target>
+
+    <target name="build-quick" depends="prepare, get">
+        <exec executable="gox" dir=".">
+            <arg value="--osarch" />
+            <arg value="linux/amd64" />
+            <arg value="--parallel" />
+            <arg value="2" />
+        </exec>
+
+        <copy file="toolkit_linux_amd64" tofile="build/packaging/deb-amd64/usr/local/bin/tk" />
+        <chmod file="build/packaging/deb-amd64/usr/local/bin/tk" perm="+x" />
+
+        <exec executable="fpm" dir="build/packaging/deb-amd64" failonerror="true">
+            <arg value="--maintainer" />
+            <arg value="support@tideways.io" />
+            <arg value="--url" />
+            <arg value="https://tideways.io" />
+            <arg value="-f" />
+            <arg value="-s" />
+            <arg value="dir" />
+            <arg value="-t" />
+            <arg value="deb" />
+            <arg value="-n" />
+            <arg value="tideways-toolkit" />
+            <arg value="-a" />
+            <arg value="amd64" />
+            <arg value="-v" />
+            <arg value="${build.version}" />
+            <arg value="." />
+        </exec>
+
+        <copy file="build/packaging/deb-amd64/tideways-toolkit_${build.version}_amd64.deb" todir="build/dist" />
+    </target>
+
+    <target name="get">
+        <exec executable="go">
+            <arg value="get" />
+            <arg value="-t" />
+        </exec>
+    </target>
+
+    <target name="build" depends="prepare, get">
+        <exec executable="gox" dir=".">
+            <arg value="--os" />
+            <arg value="linux freebsd" />
+            <arg value="--osarch" />
+            <arg value="darwin/amd64 !freebsd/arm" />
+            <arg value="--parallel" />
+            <arg value="2" />
+        </exec>
+
+        <copy file="toolkit_linux_386" tofile="build/packaging/deb-i386/usr/local/bin/tk" />
+        <copy file="toolkit_linux_386" tofile="build/packaging/rpm-i386/usr/local/bin/tk" />
+        <copy file="toolkit_linux_amd64" tofile="build/packaging/deb-amd64/usr/local/bin/tk" />
+        <copy file="toolkit_linux_amd64" tofile="build/packaging/rpm-amd64/usr/local/bin/tk" />
+
+        <chmod file="build/packaging/deb-i386/usr/local/bin/tk" perm="+x" />
+        <chmod file="build/packaging/rpm-i386/usr/local/bin/tk" perm="+x" />
+        <chmod file="build/packaging/deb-amd64/usr/local/bin/tk" perm="+x" />
+        <chmod file="build/packaging/rpm-amd64/usr/local/bin/tk" perm="+x" />
+
+        <exec executable="fpm" dir="build/packaging/deb-i386" failonerror="true">
+            <arg value="--maintainer" />
+            <arg value="support@tideways.io" />
+            <arg value="--url" />
+            <arg value="https://tideways.io" />
+            <arg value="--description" />
+            <arg value="tideways toolkit can analyze xhprof,xdebug traces and perform other PHP debugging tasks from the CLI" />
+            <arg value="-f" />
+            <arg value="-s" />
+            <arg value="dir" />
+            <arg value="-t" />
+            <arg value="deb" />
+            <arg value="-n" />
+            <arg value="tideways-toolkit" />
+            <arg value="-a" />
+            <arg value="i386" />
+            <arg value="-v" />
+            <arg value="${build.version}" />
+            <arg value="." />
+        </exec>
+
+        <exec executable="fpm" dir="build/packaging/deb-amd64" failonerror="true">
+            <arg value="--maintainer" />
+            <arg value="support@tideways.io" />
+            <arg value="--url" />
+            <arg value="https://tideways.io" />
+            <arg value="--description" />
+            <arg value="tideways toolkit can analyze xhprof,xdebug traces and perform other PHP debugging tasks from the CLI" />
+            <arg value="-f" />
+            <arg value="-s" />
+            <arg value="dir" />
+            <arg value="-t" />
+            <arg value="deb" />
+            <arg value="-n" />
+            <arg value="tideways-toolkit" />
+            <arg value="-a" />
+            <arg value="amd64" />
+            <arg value="-v" />
+            <arg value="${build.version}" />
+            <arg value="." />
+        </exec>
+
+        <exec executable="fpm" dir="build/packaging/rpm-amd64" failonerror="true">
+            <arg value="--maintainer" />
+            <arg value="support@tideways.io" />
+            <arg value="--url" />
+            <arg value="https://tideways.io" />
+            <arg value="--description" />
+            <arg value="tideways toolkit can analyze xhprof,xdebug traces and perform other PHP debugging tasks from the CLI" />
+            <arg value="-f" />
+            <arg value="-s" />
+            <arg value="dir" />
+            <arg value="-t" />
+            <arg value="rpm" />
+            <arg value="-n" />
+            <arg value="tideways-toolkit" />
+            <arg value="-a" />
+            <arg value="amd64" />
+            <arg value="-v" />
+            <arg value="${build.version}" />
+            <arg value="." />
+        </exec>
+
+        <exec executable="fpm" dir="build/packaging/rpm-i386" failonerror="true">
+            <arg value="--maintainer" />
+            <arg value="support@tideways.io" />
+            <arg value="--url" />
+            <arg value="https://tideways.io" />
+            <arg value="--description" />
+            <arg value="tideways toolkit can analyze xhprof,xdebug traces and perform other PHP debugging tasks from the CLI" />
+            <arg value="-f" />
+            <arg value="-s" />
+            <arg value="dir" />
+            <arg value="-t" />
+            <arg value="rpm" />
+            <arg value="-n" />
+            <arg value="tideways-toolkit" />
+            <arg value="-a" />
+            <arg value="i386" />
+            <arg value="-v" />
+            <arg value="${build.version}" />
+            <arg value="." />
+        </exec>
+
+        <copy file="build/packaging/deb-amd64/tideways-toolkit_${build.version}_amd64.deb" todir="build/dist" />
+        <copy file="build/packaging/deb-i386/tideways-toolkit_${build.version}_i386.deb" todir="build/dist" />
+        <copy file="build/packaging/rpm-amd64/tideways-toolkit-${build.version}-1.x86_64.rpm" todir="build/dist" />
+        <copy file="build/packaging/rpm-i386/tideways-toolkit-${build.version}-1.i386.rpm" todir="build/dist" />
+
+        <copy todir="build/packaging/tideways-toolkit_${build.version}">
+            <fileset dir=".">
+                <include name="README.md" />
+                <include name="LICENSE" />
+                <include name="NOTICE" />
+            </fileset>
+        </copy>
+
+        <copy file="toolkit_linux_386" tofile="build/packaging/tideways-toolkit_${build.version}/tk" overwrite="true" />
+        <tar destfile="build/dist/toolkit_linux_i386-${build.version}.tar" basedir="build/packaging/" includes="tideways-toolkit_${build.version}/**" />
+        <gzip src="build/dist/toolkit_linux_i386-${build.version}.tar" destfile="build/dist/toolkit_linux_i386-${build.version}.tar.gz" />
+        <delete file="build/dist/toolkit_linux_i386-${build.version}.tar" />
+
+        <copy file="toolkit_linux_amd64" tofile="build/packaging/tideways-toolkit_${build.version}/tk" overwrite="true" />
+        <tar destfile="build/dist/toolkit_linux_amd64-${build.version}.tar" basedir="build/packaging/" includes="tideways-toolkit_${build.version}/**" />
+        <gzip src="build/dist/toolkit_linux_amd64-${build.version}.tar" destfile="build/dist/toolkit_linux_amd64-${build.version}.tar.gz" />
+        <delete file="build/dist/toolkit_linux_amd64-${build.version}.tar" />
+
+        <copy file="toolkit_darwin_amd64" tofile="build/packaging/tideways-toolkit_${build.version}/tk" overwrite="true" />
+        <tar destfile="build/dist/toolkit_macos_amd64-${build.version}.tar" basedir="build/packaging/" includes="tideways-toolkit_${build.version}/**" />
+        <gzip src="build/dist/toolkit_macos_amd64-${build.version}.tar" destfile="build/dist/toolkit_macos_amd64-${build.version}.tar.gz" />
+        <delete file="build/dist/toolkit_macos_amd64-${build.version}.tar" />
+
+        <copy file="toolkit_freebsd_amd64" tofile="build/packaging/tideways-toolkit_${build.version}/tk" overwrite="true" />
+        <tar destfile="build/dist/toolkit_freebsd_amd64-${build.version}.tar" basedir="build/packaging/" includes="tideways-toolkit_${build.version}/**" />
+        <gzip src="build/dist/toolkit_freebsd_amd64-${build.version}.tar" destfile="build/dist/toolkit_freebsd_amd64-${build.version}.tar.gz" />
+        <delete file="build/dist/toolkit_freebsd_amd64-${build.version}.tar" />
+    </target>
+
+    <target name="install" depends="build-quick">
+        <exec executable="sudo">
+            <arg value="dpkg" />
+            <arg value="--force-confold" />
+            <arg value="-i" />
+            <arg value="build/dist/tideways-toolkit${build.version}_amd64.deb" />
+        </exec>
+    </target>
+</project>

@@ -16,9 +16,9 @@ type Unit struct {
 }
 
 var (
-	ms 		Unit = Unit{Name: "ms", Divisor: 1000.0}
-	kb 		Unit = Unit{Name: "KB", Divisor: 1024.0}
-	plain 	Unit = Unit{Name: "", 	Divisor: 1.0 }
+	ms    Unit = Unit{Name: "ms", Divisor: 1000.0}
+	kb    Unit = Unit{Name: "KB", Divisor: 1024.0}
+	plain Unit = Unit{Name: "", Divisor: 1.0}
 )
 
 type FieldInfo struct {
@@ -78,22 +78,22 @@ var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
 		Unit:   ms,
 	},
 	"num_alloc": FieldInfo{
-		Name:	"NumAlloc",
-		Label: 	"Number of Allocations",
-		Header:	"Num. Alloc.",
-		Unit: 	plain,
+		Name:   "NumAlloc",
+		Label:  "Number of Allocations",
+		Header: "Num. Alloc.",
+		Unit:   plain,
 	},
 	"alloc_amt": FieldInfo{
-		Name:	"AllocAmount",
-		Label: 	"Amount of allocated Memory",
-		Header:	"Alloc. Amount",
-		Unit: 	kb,
+		Name:   "AllocAmount",
+		Label:  "Amount of allocated Memory",
+		Header: "Alloc. Amount",
+		Unit:   kb,
 	},
 	"num_free": FieldInfo{
-		Name:	"NumFree",
-		Label:	"Number of Frees",
-		Header:	"Num. Frees",
-		Unit: plain,
+		Name:   "NumFree",
+		Label:  "Number of Frees",
+		Header: "Num. Frees",
+		Unit:   plain,
 	},
 }
 

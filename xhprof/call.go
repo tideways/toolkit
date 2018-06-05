@@ -16,9 +16,9 @@ type Call struct {
 	ExclusiveCpuTime  float32
 	ExclusiveMemory   float32
 	ExclusiveIoTime   float32
-	NumAlloc		  float32
-	NumFree		 	  float32
-	AllocAmount		  float32
+	NumAlloc          float32
+	NumFree           float32
+	AllocAmount       float32
 
 	graphvizId int
 }

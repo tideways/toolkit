@@ -5,14 +5,14 @@ import (
 )
 
 type PairCall struct {
-	Count      int     `json:"ct"`
-	WallTime   float32 `json:"wt"`
-	CpuTime    float32 `json:"cpu"`
-	Memory     float32 `json:"mu"`
-	PeakMemory float32 `json:"pmu"`
-	NumAlloc   float32 `json:"mem.na"`
-	NumFree   float32 `json:"mem.nf"`
-	AllocAmount   float32 `json:"mem.aa"`
+	Count       int     `json:"ct"`
+	WallTime    float32 `json:"wt"`
+	CpuTime     float32 `json:"cpu"`
+	Memory      float32 `json:"mu"`
+	PeakMemory  float32 `json:"pmu"`
+	NumAlloc    float32 `json:"mem.na"`
+	NumFree     float32 `json:"mem.nf"`
+	AllocAmount float32 `json:"mem.aa"`
 }
 
 func (p *PairCall) Add(o *PairCall) *PairCall {

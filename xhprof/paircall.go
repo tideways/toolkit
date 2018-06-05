@@ -10,6 +10,9 @@ type PairCall struct {
 	CpuTime    float32 `json:"cpu"`
 	Memory     float32 `json:"mu"`
 	PeakMemory float32 `json:"pmu"`
+	NumAlloc   float32 `json:"mem.na"`
+	NumFree   float32 `json:"mem.nf"`
+	AllocAmount   float32 `json:"mem.aa"`
 }
 
 func (p *PairCall) Add(o *PairCall) *PairCall {
@@ -18,6 +21,9 @@ func (p *PairCall) Add(o *PairCall) *PairCall {
 	p.CpuTime += o.CpuTime
 	p.Memory += o.Memory
 	p.PeakMemory += o.PeakMemory
+	p.NumAlloc += o.NumAlloc
+	p.NumFree += o.NumFree
+	p.AllocAmount += o.AllocAmount
 
 	return p
 }
@@ -28,6 +34,9 @@ func (p *PairCall) Divide(d float32) *PairCall {
 	p.CpuTime /= d
 	p.Memory /= d
 	p.PeakMemory /= d
+	p.NumAlloc /= d
+	p.NumFree /= d
+	p.AllocAmount /= d
 
 	return p
 }
@@ -38,6 +47,9 @@ func (p *PairCall) Subtract(o *PairCall) *PairCall {
 	p.CpuTime -= o.CpuTime
 	p.Memory -= o.Memory
 	p.PeakMemory -= o.PeakMemory
+	p.NumAlloc -= o.NumAlloc
+	p.NumFree -= o.NumFree
+	p.AllocAmount -= o.AllocAmount
 
 	return p
 }

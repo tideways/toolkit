@@ -16,8 +16,9 @@ type Unit struct {
 }
 
 var (
-	ms Unit = Unit{Name: "ms", Divisor: 1000.0}
-	kb Unit = Unit{Name: "KB", Divisor: 1024.0}
+	ms 		Unit = Unit{Name: "ms", Divisor: 1000.0}
+	kb 		Unit = Unit{Name: "KB", Divisor: 1024.0}
+	plain 	Unit = Unit{Name: "", 	Divisor: 1.0 }
 )
 
 type FieldInfo struct {
@@ -76,22 +77,47 @@ var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
 		Header: "I/O-Time",
 		Unit:   ms,
 	},
+	"num_alloc": FieldInfo{
+		Name:	"NumAlloc",
+		Label: 	"Number of Allocations",
+		Header:	"Num. Alloc.",
+		Unit: 	plain,
+	},
+	"alloc_amt": FieldInfo{
+		Name:	"AllocAmount",
+		Label: 	"Amount of allocated Memory",
+		Header:	"Alloc. Amount",
+		Unit: 	kb,
+	},
+	"num_free": FieldInfo{
+		Name:	"NumFree",
+		Label:	"Number of Frees",
+		Header:	"Num. Frees",
+		Unit: plain,
+	},
 }
 
 func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, minValue float32) error {
 	header := fieldInfo.Header
 	exclHeader := "Excl. " + fieldInfo.Header
 	var fields []FieldInfo
+	var headers []string
 	if strings.HasPrefix(field, "excl_") {
 		fields = []FieldInfo{fieldsMap[strings.TrimPrefix(field, "excl_")], fieldInfo}
 		exclHeader = fmt.Sprintf("%s (>= %2.2f %s)", exclHeader, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
-	} else {
-		fields = []FieldInfo{fieldInfo, fieldsMap["excl_"+field]}
+		headers = []string{"Function", "Count", header, exclHeader}
+	} else if field == "num_alloc" {
+		fields = []FieldInfo{fieldsMap["num_alloc"], fieldsMap["alloc_amt"], fieldsMap["num_free"]}
 		header = fmt.Sprintf("%s (>= %2.2f %s)", header, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
+		headers = []string{"Function", "Count", fieldsMap["num_alloc"].Header, fieldsMap["alloc_amt"].Header, fieldsMap["num_free"].Header}
+	} else {
+		fields = []FieldInfo{fieldInfo}
+		header = fmt.Sprintf("%s (>= %2.2f %s)", header, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
+		headers = []string{"Function", "Count", header}
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Function", "Count", header, exclHeader})
+	table.SetHeader(headers)
 	for _, call := range profile.Calls {
 		table.Append(getRow(call, fields))
 	}

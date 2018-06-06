@@ -106,7 +106,7 @@ func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, m
 		fields = []FieldInfo{fieldsMap[strings.TrimPrefix(field, "excl_")], fieldInfo}
 		exclHeader = fmt.Sprintf("%s (>= %2.2f %s)", exclHeader, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
 		headers = []string{"Function", "Count", header, exclHeader}
-	} else if field == "num_alloc" {
+	} else if field == "num_alloc" || field == "alloc_amt" || field == "num_free" {
 		fields = []FieldInfo{fieldsMap["num_alloc"], fieldsMap["alloc_amt"], fieldsMap["num_free"]}
 		header = fmt.Sprintf("%s (>= %2.2f %s)", header, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
 		headers = []string{"Function", "Count", fieldsMap["num_alloc"].Header, fieldsMap["alloc_amt"].Header, fieldsMap["num_free"].Header}

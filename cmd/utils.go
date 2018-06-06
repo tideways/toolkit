@@ -135,7 +135,13 @@ func getRow(call *xhprof.Call, fields []FieldInfo) []string {
 	}
 
 	for _, field := range fields {
-		col := fmt.Sprintf("%2.2f %s", call.GetFloat32Field(field.Name)/field.Unit.Divisor, field.Unit.Name)
+		var col string
+		if field.Unit == plain {
+			col = fmt.Sprintf("%2.0f %s", call.GetFloat32Field(field.Name)/field.Unit.Divisor, field.Unit.Name)
+		} else {
+			col = fmt.Sprintf("%2.2f %s", call.GetFloat32Field(field.Name)/field.Unit.Divisor, field.Unit.Name)
+		}
+
 		res = append(res, col)
 	}
 

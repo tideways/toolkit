@@ -12,7 +12,7 @@ import (
 
 func init() {
 	RootCmd.AddCommand(xhprofCmd)
-	xhprofCmd.Flags().StringVarP(&field, "dimension", "d", "excl_wt", "Dimension to view/sort (wt, excl_wt, cpu, excl_cpu, memory, excl_memory, io, excl_io)")
+	xhprofCmd.Flags().StringVarP(&field, "dimension", "d", "excl_wt", "Dimension to view/sort (wt, excl_wt, cpu, excl_cpu, memory, excl_memory, io, excl_io, num_alloc)")
 	xhprofCmd.Flags().Float32VarP(&minPercent, "min", "m", 1, "Display items having minimum percentage (default 1% for inclusive, and 10% for exclusive dimensions) of --dimension, with respect to max value")
 	xhprofCmd.Flags().StringVarP(&outFile, "out-file", "o", "", "If provided, the path to store the resulting profile (e.g. after averaging)")
 	xhprofCmd.Flags().StringVarP(&function, "function", "", "", "If provided, one table for parents, and one for children of this function will be displayed")

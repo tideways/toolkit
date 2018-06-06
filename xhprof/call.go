@@ -16,6 +16,9 @@ type Call struct {
 	ExclusiveCpuTime  float32
 	ExclusiveMemory   float32
 	ExclusiveIoTime   float32
+	NumAlloc          float32
+	NumFree           float32
+	AllocAmount       float32
 
 	graphvizId int
 }
@@ -36,6 +39,9 @@ func (c *Call) Add(o *Call) *Call {
 	c.ExclusiveMemory += o.ExclusiveMemory
 	c.IoTime += o.IoTime
 	c.ExclusiveIoTime += o.ExclusiveIoTime
+	c.NumAlloc += o.NumAlloc
+	c.NumFree += o.NumFree
+	c.AllocAmount += o.AllocAmount
 
 	return c
 }
@@ -58,6 +64,9 @@ func (c *Call) AddPairCall(p *PairCall) *Call {
 	c.Memory += p.Memory
 	c.PeakMemory += p.PeakMemory
 	c.ExclusiveMemory += p.Memory
+	c.NumAlloc += p.NumAlloc
+	c.NumFree += p.NumFree
+	c.AllocAmount += p.AllocAmount
 
 	return c
 }
@@ -88,6 +97,9 @@ func (c *Call) Divide(d float32) *Call {
 	c.ExclusiveMemory /= d
 	c.IoTime /= d
 	c.ExclusiveIoTime /= d
+	c.NumAlloc /= d
+	c.NumFree /= d
+	c.AllocAmount /= d
 
 	return c
 }

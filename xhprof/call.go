@@ -5,20 +5,23 @@ import (
 )
 
 type Call struct {
-	Name              string
-	Count             int
-	WallTime          float32
-	CpuTime           float32
-	IoTime            float32
-	Memory            float32
-	PeakMemory        float32
-	ExclusiveWallTime float32
-	ExclusiveCpuTime  float32
-	ExclusiveMemory   float32
-	ExclusiveIoTime   float32
-	NumAlloc          float32
-	NumFree           float32
-	AllocAmount       float32
+	Name                 string
+	Count                int
+	WallTime             float32
+	CpuTime              float32
+	IoTime               float32
+	Memory               float32
+	PeakMemory           float32
+	ExclusiveWallTime    float32
+	ExclusiveCpuTime     float32
+	ExclusiveMemory      float32
+	ExclusiveIoTime      float32
+	NumAlloc             float32
+	ExclusiveNumAlloc    float32
+	NumFree              float32
+	ExclusiveNumFree     float32
+	AllocAmount          float32
+	ExclusiveAllocAmount float32
 
 	graphvizId int
 }
@@ -42,6 +45,9 @@ func (c *Call) Add(o *Call) *Call {
 	c.NumAlloc += o.NumAlloc
 	c.NumFree += o.NumFree
 	c.AllocAmount += o.AllocAmount
+	c.ExclusiveNumAlloc += o.ExclusiveNumAlloc
+	c.ExclusiveNumFree += o.ExclusiveNumFree
+	c.ExclusiveAllocAmount += o.ExclusiveAllocAmount
 
 	return c
 }
@@ -67,7 +73,9 @@ func (c *Call) AddPairCall(p *PairCall) *Call {
 	c.NumAlloc += p.NumAlloc
 	c.NumFree += p.NumFree
 	c.AllocAmount += p.AllocAmount
-
+	c.ExclusiveNumAlloc += p.NumAlloc
+	c.ExclusiveNumFree += p.NumFree
+	c.ExclusiveAllocAmount += p.AllocAmount
 	return c
 }
 
@@ -75,6 +83,10 @@ func (c *Call) SubtractExcl(p *PairCall) *Call {
 	c.ExclusiveWallTime -= p.WallTime
 	c.ExclusiveCpuTime -= p.CpuTime
 	c.ExclusiveMemory -= p.Memory
+
+	c.ExclusiveNumAlloc -= p.NumAlloc
+	c.ExclusiveNumFree -= p.NumFree
+	c.ExclusiveAllocAmount -= p.AllocAmount
 
 	io := p.WallTime - p.CpuTime
 	if io < 0 {
@@ -100,6 +112,9 @@ func (c *Call) Divide(d float32) *Call {
 	c.NumAlloc /= d
 	c.NumFree /= d
 	c.AllocAmount /= d
+	c.ExclusiveNumAlloc /= d
+	c.ExclusiveNumFree /= d
+	c.ExclusiveAllocAmount /= d
 
 	return c
 }

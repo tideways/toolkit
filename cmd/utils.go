@@ -83,15 +83,33 @@ var fieldsMap map[string]FieldInfo = map[string]FieldInfo{
 		Header: "Num. Alloc.",
 		Unit:   plain,
 	},
+	"excl_num_alloc": FieldInfo{
+		Name:   "ExclusiveNumAlloc",
+		Label:  "Exclusive Number of Allocations",
+		Header: "Num. Alloc.",
+		Unit:   plain,
+	},
 	"alloc_amt": FieldInfo{
 		Name:   "AllocAmount",
 		Label:  "Amount of allocated Memory",
 		Header: "Alloc. Amount",
 		Unit:   kb,
 	},
+	"excl_alloc_amt": FieldInfo{
+		Name:   "ExclusiveAllocAmount",
+		Label:  "Exclusive Amount of allocated Memory",
+		Header: "Alloc. Amount",
+		Unit:   kb,
+	},
 	"num_free": FieldInfo{
 		Name:   "NumFree",
 		Label:  "Number of Frees",
+		Header: "Num. Frees",
+		Unit:   plain,
+	},
+	"excl_num_free": FieldInfo{
+		Name:   "ExclusiveNumFree",
+		Label:  "Exclusive Number of Frees",
 		Header: "Num. Frees",
 		Unit:   plain,
 	},
@@ -106,10 +124,6 @@ func renderProfile(profile *xhprof.Profile, field string, fieldInfo FieldInfo, m
 		fields = []FieldInfo{fieldsMap[strings.TrimPrefix(field, "excl_")], fieldInfo}
 		exclHeader = fmt.Sprintf("%s (>= %2.2f %s)", exclHeader, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
 		headers = []string{"Function", "Count", header, exclHeader}
-	} else if field == "num_alloc" || field == "alloc_amt" || field == "num_free" {
-		fields = []FieldInfo{fieldsMap["num_alloc"], fieldsMap["alloc_amt"], fieldsMap["num_free"]}
-		header = fmt.Sprintf("%s (>= %2.2f %s)", header, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
-		headers = []string{"Function", "Count", fieldsMap["num_alloc"].Header, fieldsMap["alloc_amt"].Header, fieldsMap["num_free"].Header}
 	} else {
 		fields = []FieldInfo{fieldInfo}
 		header = fmt.Sprintf("%s (>= %2.2f %s)", header, minValue/fieldInfo.Unit.Divisor, fieldInfo.Unit.Name)
